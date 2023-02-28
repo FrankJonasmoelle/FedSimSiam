@@ -1,99 +1,80 @@
 import torch
 import torch.nn as nn
-import math
-# from models.resnet import resnet18
 from torchvision.models import resnet18
+import torchvision
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+from torch.optim import lr_scheduler
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+import math
 
 
 class ProjectionMLP(nn.Module):
-    def __init__(self, in_dim, mid_dim, out_dim):
+    """Projection MLP f"""
+    def __init__(self, in_features, h1_features, h2_features, out_features):
         super(ProjectionMLP, self).__init__()
         self.l1 = nn.Sequential(
-            nn.Linear(in_dim, mid_dim),
-            nn.BatchNorm1d(mid_dim),
+            nn.Linear(in_features, h1_features),
+            nn.BatchNorm1d(h1_features),
             nn.ReLU(inplace=True)
         )
         self.l2 = nn.Sequential(
-            nn.Linear(mid_dim, mid_dim),
-            nn.BatchNorm1d(mid_dim),
+            nn.Linear(h1_features, h2_features),
+            nn.BatchNorm1d(h2_features),
             nn.ReLU(inplace=True)
+
         )
         self.l3 = nn.Sequential(
-            nn.Linear(mid_dim, out_dim),
-            nn.BatchNorm1d(out_dim)
+            nn.Linear(h1_features, out_features),
+            nn.BatchNorm1d(out_features)
         )
 
     def forward(self, x):
         x = self.l1(x)
         x = self.l2(x)
         x = self.l3(x)
-
         return x
-
+    
 
 class PredictionMLP(nn.Module):
-    def __init__(self, in_dim, mid_dim, out_dim):
+    """Prediction MLP h"""
+    def __init__(self, in_features, hidden_features, out_features):
         super(PredictionMLP, self).__init__()
         self.l1 = nn.Sequential(
-            nn.Linear(in_dim, mid_dim),
-            nn.BatchNorm1d(mid_dim),
+            nn.Linear(in_features, hidden_features),
+            nn.BatchNorm1d(hidden_features),
             nn.ReLU(inplace=True)
         )
-        self.l2 = nn.Linear(mid_dim, out_dim)
-
+        self.l2 = nn.Linear(hidden_features, out_features)
+    
     def forward(self, x):
         x = self.l1(x)
         x = self.l2(x)
-
         return x
-
+    
 
 class SimSiam(nn.Module):
-
-    def __init__(self, backbone='resnet18', d=2048):
+    def __init__(self):
         super(SimSiam, self).__init__()
-
-        if backbone == 'resnet18':
-            net = resnet18(zero_init_residual=True)
-        else:
-            raise NotImplementedError('Backbone model not implemented.')
-
-        num_ftrs = net.fc.in_features
-        self.features = nn.Sequential(*list(net.children())[:-1])
-        # num_ftrs = net.fc.out_features
-        # self.features = net
-
-        # projection MLP
-        self.projection = ProjectionMLP(num_ftrs, 2048, 2048)
-        # prediction MLP
+        backbone = resnet18(weights=True) # TODO: Should weights be pretrained?
+        num_ftrs = backbone.fc.in_features
+        
+        self.model = nn.Sequential(*list(backbone.children())[:-1])
+        self.projection = ProjectionMLP(num_ftrs, 2048, 2048, 2048)
         self.prediction = PredictionMLP(2048, 512, 2048)
 
-        # self.reset_parameters()
-
     def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        # projection
+        x = self.model(x)
+        x = x.view(x.size(0), -1) # TODO
         z = self.projection(x)
-        # prediction
         p = self.prediction(z)
         return z, p
+    
 
-    def reset_parameters(self):
-        # reset conv initialization to default uniform initialization
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.in_channels
-                stdv = 1. / math.sqrt(n)
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                    m.bias.data.uniform_(-stdv, stdv)
-            elif isinstance(m, nn.Linear):
-                stdv = 1. / math.sqrt(m.weight.size(1))
-                m.weight.data.uniform_(-stdv, stdv)
-                if m.bias is not None:
-                    m.bias.data.uniform_(-stdv, stdv)
-
-if __name__=="__main__":
-    simsiam = SimSiam()
-    print(simsiam.prediction)
+def D(p, z):
+    z = z.detach() # we don't backpropagate here
+    p = F.normalize(p, dim=1)
+    z = F.normalize(z, dim=1)
+    return -(p*z).sum(dim=1).mean()
