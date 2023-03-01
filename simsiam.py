@@ -1,14 +1,6 @@
-import torch
 import torch.nn as nn
 from torchvision.models import resnet18
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn.functional as F
-from torch.optim import lr_scheduler
-import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
-import math
 
 
 class ProjectionMLP(nn.Module):
@@ -74,6 +66,7 @@ class SimSiam(nn.Module):
     
 
 def D(p, z):
+    """Loss function"""
     z = z.detach() # we don't backpropagate here
     p = F.normalize(p, dim=1)
     z = F.normalize(z, dim=1)
