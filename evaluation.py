@@ -164,3 +164,4 @@ def evaluate_simsiam_downstream(model, testloader, device):
             correct += (predicted == labels).sum().item()
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
+    return 100 * correct // total
