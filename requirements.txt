@@ -1,4 +1,6 @@
-torch==1.13.1+cu116
-torchaudio==0.13.1+cu116
-torchvision==0.14.1+cu116
-
+matplotlib==3.7.1
+numpy==1.24.2
+Pillow==9.4.0
+torch==2.0.0
+torchaudio==2.0.1
+torchvision==0.15.1

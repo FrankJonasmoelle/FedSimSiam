@@ -5,7 +5,7 @@ To set up the virtual environment, run
 
 To activate the virtual environment, run
 ```
-    source simsiam-venv/bin/activate
+    source .simsiam-venv/bin/activate
 ```
 
 To install the requirements, run
