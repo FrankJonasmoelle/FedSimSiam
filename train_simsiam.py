@@ -69,3 +69,8 @@ if __name__=="__main__":
     torch.save(model.state_dict(), PATH)
 
 
+    # SimSiam Evaluation
+    # TODO
+
+    # Comparison to Supervised Model    
+    # TODO
