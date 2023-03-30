@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-from simsiam import SimSiam
+from .simsiam import SimSiam
 
 
 class SupervisedModel(nn.Module):
@@ -144,7 +144,7 @@ def evaluate_downstream(model, testloader, device):
             correct += (predicted == labels).sum().item()
 
     print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-
+    return 100 * correct // total
 
 
 def evaluate_simsiam_downstream(model, testloader, device):

@@ -31,9 +31,9 @@ def prepare_data():
         normalize
     ]
 
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+    trainset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=True,
                                             download=True, transform=TwoCropsTransform(transforms.Compose(augmentation)))
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+    testset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=False,
                                         download=True, transform=transforms.Compose([transforms.ToTensor(), normalize]))
 
     batch_size = 64

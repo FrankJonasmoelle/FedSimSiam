@@ -1,7 +1,7 @@
-from SimSiam.simsiam.datapreparation import *
+from simsiam.datapreparation import *
 from SimSiam.simsiam.simsiam import *
-from SimSiam.simsiam.utils import *
-from SimSiam.simsiam.evaluation import *
+from simsiam.utils import *
+from simsiam.evaluation import *
 import argparse
 import torch
 
