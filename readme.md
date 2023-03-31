@@ -22,6 +22,6 @@ To install the requirements, run
 ```
 then
 ```
-    docker run federated_simsiam
+    docker run --shm-size 8G federated_simsiam
 ```
 
