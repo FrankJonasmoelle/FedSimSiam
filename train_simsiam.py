@@ -6,7 +6,8 @@ import argparse
 import torch
 
 
-def train_simsiam(num_epochs, trainloader, optimizer):
+def train_simsiam(model, num_epochs, trainloader, optimizer, device):
+    model.to(device)
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         epoch_loss = 0.0
         running_loss = 0.0
@@ -59,10 +60,10 @@ if __name__=="__main__":
     # load model
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = SimSiam()
-    model = model.to(device)
+    # model = model.to(device)
     # init train settings
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-    train_simsiam(opt.epochs, trainloader, optimizer)
+    train_simsiam(model, opt.epochs, trainloader, optimizer, device)
 
     # save model
     PATH = opt.output_path
