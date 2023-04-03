@@ -43,12 +43,13 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
 if __name__=="__main__":
     """
     run: 
-    python3 train_simsiam.py --epochs 50 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam.pth'
+    python3 train_simsiam.py --epochs 50 --batch_size 512 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam.pth'
     
     """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--epochs', type=int, default=1, help='number of epochs')
+    parser.add_argument('--batch_size', type=int, default=64, help='batchsize for dataloader')
     parser.add_argument('--lr', type=float, default=0.03, help='optimizer learning rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='optimizer momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0005, help='optimizer weight decay')
@@ -57,7 +58,7 @@ if __name__=="__main__":
     opt = parser.parse_args()
 
     # load cifar-10 data
-    trainloader, testloader = prepare_data()
+    trainloader, testloader = prepare_data(opt.batch_size)
     # load model
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = SimSiam()

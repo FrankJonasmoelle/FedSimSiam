@@ -15,7 +15,7 @@ class TwoCropsTransform:
         return [q, k]
 
 
-def prepare_data():
+def prepare_data(batch_size=64):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                         std=[0.229, 0.224, 0.225])
 
@@ -35,8 +35,6 @@ def prepare_data():
                                             download=True, transform=TwoCropsTransform(transforms.Compose(augmentation)))
     testset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=False,
                                         download=True, transform=transforms.Compose([transforms.ToTensor(), normalize]))
-
-    batch_size = 64
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, 
                                                 shuffle=True, num_workers=2, pin_memory=True)
