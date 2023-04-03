@@ -52,7 +52,7 @@ if __name__=="__main__":
     parser.add_argument('--lr', type=float, default=0.03, help='optimizer learning rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='optimizer momentum')
     parser.add_argument('--weight_decay', type=float, default=0.0005, help='optimizer weight decay')
-    parser.add_argument('--output_path', type=str, default='models/simsiam.pth')
+    parser.add_argument('--output_path', type=str, default='simsiam.pth')
 
     opt = parser.parse_args()
 
