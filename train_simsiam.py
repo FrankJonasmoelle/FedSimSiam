@@ -38,6 +38,7 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
                 running_loss = 0.0
         print("epoch loss = ", epoch_loss/len(trainloader))
     print('Finished Training')
+    return model
 
 if __name__=="__main__":
     """
@@ -63,11 +64,11 @@ if __name__=="__main__":
     # model = model.to(device)
     # init train settings
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-    train_simsiam(model, opt.epochs, trainloader, optimizer, device)
+    trained_model = train_simsiam(model, opt.epochs, trainloader, optimizer, device)
 
     # save model
     PATH = opt.output_path
-    torch.save(model.state_dict(), PATH)
+    torch.save(trained_model.state_dict(), PATH)
 
 
     # SimSiam Evaluation
