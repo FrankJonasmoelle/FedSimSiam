@@ -15,6 +15,10 @@ To install the requirements, run
     pip3 install -r requirements.txt
 ```
 
+Run it with
+```
+python3 train_simsiam.py --epochs 50 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam.pth'
+```
 
 ### To run the project in Docker, use the following commands
 ```
