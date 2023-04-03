@@ -94,10 +94,11 @@ def train_downstream(num_epochs, model, trainloader, criterion, optimizer, devic
             # print statistics
             running_loss += loss.item()
             if i % 500 == 499:    # print every 2000 mini-batches
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 500:.3f}')
+                print(f'[{epoch + 1 }, {i + 1:5d}] loss: {running_loss / 500:.3f}')
                 running_loss = 0.0
 
     print('Finished Training')
+    return model
 
 
 def train_simsiam_downstream(num_epochs, model, trainloader, criterion, optimizer, device):
@@ -125,6 +126,7 @@ def train_simsiam_downstream(num_epochs, model, trainloader, criterion, optimize
                 running_loss = 0.0
 
     print('Finished Training')
+    return model
 
 
 def evaluate_downstream(model, testloader, device):
@@ -142,9 +144,9 @@ def evaluate_downstream(model, testloader, device):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
-    print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-    return 100 * correct // total
+    accuracy = 100 * correct // total
+    print(f'Accuracy of the network on test images: {accuracy} %')
+    return accuracy
 
 
 def evaluate_simsiam_downstream(model, testloader, device):
@@ -163,5 +165,6 @@ def evaluate_simsiam_downstream(model, testloader, device):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print(f'Accuracy of the network on the 10000 test images: {100 * correct // total} %')
-    return 100 * correct // total
+    accuracy = 100 * correct // total
+    print(f'Accuracy of the network on test images: {accuracy} %')
+    return accuracy

@@ -1,4 +1,5 @@
-FROM python:3.10
+# FROM python:3.10
+FROM nvidia/cuda:11.4.1-cudnn8-devel-ubuntu20.04
 
 WORKDIR /app
 

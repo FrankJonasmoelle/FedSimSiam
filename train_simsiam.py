@@ -43,7 +43,7 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
 if __name__=="__main__":
     """
     run: 
-    python3 train.py --epochs 5 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'models/simsiam.pth'
+    python3 train_simsiam.py --epochs 50 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam.pth'
     
     """
     parser = argparse.ArgumentParser()
