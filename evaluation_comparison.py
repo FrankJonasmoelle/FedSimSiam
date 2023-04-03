@@ -8,9 +8,12 @@ from SimSiam.federated_simsiam.server import *
 from SimSiam.federated_simsiam.datapreparation import *
 from SimSiam.federated_simsiam.evaluation import *
 import argparse
+import logging
 
+logging.basicConfig(filename='logging.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 if __name__=="__main__":
+    
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--data_percentage', type=int, default=0.01, help='percentage of data used for training')
@@ -40,7 +43,7 @@ if __name__=="__main__":
     supervised_accuracy = evaluate_downstream(supervised_model, testloader, device)
     
     print("accuracy for supervised model: ", supervised_accuracy)
-
+    logging.info("accuracy for supervised model: ", supervised_accuracy)
     ####################################
     # linear evaluation standard SimSiam
     ####################################
@@ -52,6 +55,7 @@ if __name__=="__main__":
     simsiam_accuracy = evaluate_simsiam_downstream(simsiam_model, testloader, device)
 
     print("accuracy for standard simsiam: ", simsiam_accuracy)
+    logging.info("accuracy for standard simsiam: ", simsiam_accuracy)
 
     ##################################
     # linear evaluation fedavg SimSiam
@@ -64,3 +68,4 @@ if __name__=="__main__":
     fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
 
     print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
+    logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)

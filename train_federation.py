@@ -17,7 +17,7 @@ if __name__=="__main__":
     parser.add_argument('--iid', type=bool, default=False, help='split dataset iid or not')
     parser.add_argument('--num_rounds', type=int, default=1, help='number of training rounds')
     parser.add_argument('--local_epochs', type=int, default=5, help='number of client epochs for training')
-    parser.add_argument('--output_path', type=str, default='models/fedavg_simsiam.pth')
+    parser.add_argument('--output_path', type=str, default='fedavg_simsiam.pth')
 
     opt = parser.parse_args()
 
@@ -39,22 +39,22 @@ if __name__=="__main__":
     averaged_model = averaged_model.to(device)
 
 
-    optimizer = optim.SGD(averaged_model.parameters(), lr=0.001, momentum=0.9)    
-    criterion = nn.CrossEntropyLoss()
+    # optimizer = optim.SGD(averaged_model.parameters(), lr=0.001, momentum=0.9)    
+    # criterion = nn.CrossEntropyLoss()
 
-    trainloader, testloader = get_downstream_data(percentage_of_data=0.1, batch_size=32)
-    train_downstream(5, averaged_model, trainloader, criterion, optimizer, device)
-    acc_avg = evaluate_downstream(averaged_model, testloader, device)
-    print("accuracy fedavg: ", acc_avg)
+    # trainloader, testloader = get_downstream_data(percentage_of_data=0.1, batch_size=32)
+    # train_downstream(5, averaged_model, trainloader, criterion, optimizer, device)
+    # acc_avg = evaluate_downstream(averaged_model, testloader, device)
+    # print("accuracy fedavg: ", acc_avg)
 
-    #################################
-    # comparison to supervised model
-    #################################
-    model = SupervisedModel(pretrained=True, linearevaluation=True)
-    model = model.to(device)
+    # #################################
+    # # comparison to supervised model
+    # #################################
+    # model = SupervisedModel(pretrained=True, linearevaluation=True)
+    # model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    train_downstream(5, model, trainloader, criterion, optimizer, device)
-    acc_supervised = evaluate_downstream(model, testloader, device)
-    print("accuracy supervised model: ", acc_supervised)
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    # train_downstream(5, model, trainloader, criterion, optimizer, device)
+    # acc_supervised = evaluate_downstream(model, testloader, device)
+    # print("accuracy supervised model: ", acc_supervised)

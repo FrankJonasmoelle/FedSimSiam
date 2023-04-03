@@ -69,10 +69,3 @@ if __name__=="__main__":
     # save model
     PATH = opt.output_path
     torch.save(trained_model.state_dict(), PATH)
-
-
-    # SimSiam Evaluation
-    # TODO
-
-    # Comparison to Supervised Model    
-    # TODO
