@@ -33,10 +33,10 @@ if __name__=="__main__":
     #####################
     # FedAVG evaluation
     #####################
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    averaged_model = server.model
-    averaged_model = DownstreamEvaluation(averaged_model)
-    averaged_model = averaged_model.to(device)
+    # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    # averaged_model = server.model
+    # averaged_model = DownstreamEvaluation(averaged_model)
+    # averaged_model = averaged_model.to(device)
 
 
     # optimizer = optim.SGD(averaged_model.parameters(), lr=0.001, momentum=0.9)    

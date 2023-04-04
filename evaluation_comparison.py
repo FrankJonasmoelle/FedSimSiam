@@ -13,6 +13,10 @@ import logging
 logging.basicConfig(filename='logging.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 if __name__=="__main__":
+    """ 
+    python3 evaluation_comparison.py --data_percentage 0.01 --num_epochs 5 --batch_size 32 --simsiam_path 'simsiam_25epochs_128bs.pth'
+    
+    """
     
     parser = argparse.ArgumentParser()
 
@@ -60,12 +64,12 @@ if __name__=="__main__":
     ##################################
     # linear evaluation fedavg SimSiam
     ##################################
-    fedavg_simsiam = torch.load(opt.fedavg_simsiam_path)
-    fedavg_simsiam = DownstreamEvaluation(fedavg_simsiam)
-    fedavg_simsiam = fedavg_simsiam.to(device)
-    optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)  
-    fedavg_simsiam = train_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
-    fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
+    # fedavg_simsiam = torch.load(opt.fedavg_simsiam_path)
+    # fedavg_simsiam = DownstreamEvaluation(fedavg_simsiam)
+    # fedavg_simsiam = fedavg_simsiam.to(device)
+    # optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)  
+    # fedavg_simsiam = train_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
+    # fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
 
-    print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
-    logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
+    # print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
+    # logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
