@@ -20,7 +20,7 @@ if __name__=="__main__":
     
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--data_percentage', type=int, default=0.01, help='percentage of data used for training')
+    parser.add_argument('--data_percentage', type=float, default=0.01, help='percentage of data used for training')
     parser.add_argument('--num_epochs', type=int, default=5, help="number of epochs used for downstream training")
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     parser.add_argument('--simsiam_path', type=str, default="simsiam.pth", help='path to trained simsiam model')
