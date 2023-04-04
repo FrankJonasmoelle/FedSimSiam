@@ -26,9 +26,6 @@ python3 train_simsiam.py --epochs 50 --lr 0.03 --momentum 0.9 --weight_decay 0.0
 ```
 then
 ```
-    docker run --shm-size 8G federated_simsiam
-
-
-    # docker run --name federated_simsiam --shm-size 8G --gpus all -t nvidia/cuda
+    docker run --shm-size 8G --gpus all federated_simsiam
 ```
 
