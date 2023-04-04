@@ -11,10 +11,13 @@ import argparse
 
 
 if __name__=="__main__":
+    """
+    python3 train_federation.py --num_clients 2 --iid True --num_rounds 3 --local_epochs 5 --output_path 'fedavg_simsiam'
+    """
     parser = argparse.ArgumentParser()
     
     parser.add_argument('--num_clients', type=int, default=2, help='number of clients')
-    parser.add_argument('--iid', type=bool, default=False, help='split dataset iid or not')
+    parser.add_argument('--iid', type=bool, default=True, help='split dataset iid or not')
     parser.add_argument('--num_rounds', type=int, default=1, help='number of training rounds')
     parser.add_argument('--local_epochs', type=int, default=5, help='number of client epochs for training')
     parser.add_argument('--output_path', type=str, default='fedavg_simsiam.pth')
