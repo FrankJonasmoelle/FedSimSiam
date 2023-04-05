@@ -8,9 +8,7 @@ from SimSiam.federated_simsiam.server import *
 from SimSiam.federated_simsiam.datapreparation import *
 from SimSiam.federated_simsiam.evaluation import *
 import argparse
-import logging
 
-logging.basicConfig(filename='logging.log', filemode='w', format='%(name)s - %(levelname)s - %(message)s')
 
 if __name__=="__main__":
     """ 
@@ -45,7 +43,6 @@ if __name__=="__main__":
     supervised_accuracy = evaluate_downstream(supervised_model, testloader, device)
     
     print("accuracy for supervised model: ", supervised_accuracy)
-    logging.info("accuracy for supervised model: ", supervised_accuracy)
 
     # linear evaluation standard SimSiam
     simsiam_model = SimSiamDownstream(trained_model_path=opt.simsiam_path, device=device, linearevaluation=False)
@@ -56,16 +53,14 @@ if __name__=="__main__":
     simsiam_accuracy = evaluate_simsiam_downstream(simsiam_model, testloader, device)
 
     print("accuracy for standard simsiam: ", simsiam_accuracy)
-    logging.info("accuracy for standard simsiam: ", simsiam_accuracy)
 
     
     # linear evaluation fedavg SimSiam
-    fedavg_simsiam = torch.load(opt.fedavg_simsiam_path)
-    fedavg_simsiam = DownstreamEvaluation(fedavg_simsiam)
+    fedavg_simsiam = SimSiamDownstream(trained_model_path=opt.fedavg_simsiam_path, device=device, linearevaluation=False)
     fedavg_simsiam = fedavg_simsiam.to(device)
-    optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)  
-    fedavg_simsiam = train_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
-    fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
+    
+    optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)
+    fedavg_simsiam = train_simsiam_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
+    fedavg_simsiam_accuracy = evaluate_simsiam_downstream(fedavg_simsiam, testloader, device)
 
     print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
-    logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
