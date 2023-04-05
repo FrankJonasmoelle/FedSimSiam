@@ -14,7 +14,7 @@ logging.basicConfig(filename='logging.log', filemode='w', format='%(name)s - %(l
 
 if __name__=="__main__":
     """ 
-    python3 evaluation_comparison.py --data_percentage 0.01 --num_epochs 5 --batch_size 32 --simsiam_path 'simsiam_25epochs_128bs.pth'
+    python3 evaluation_comparison.py --data_percentage 0.01 --num_epochs 5 --batch_size 32 --simsiam_path 'models/simsiam.pth' --fedavg_simsiam_path 'models/simsiam_fedavg.pth'
     
     """
     
@@ -36,9 +36,7 @@ if __name__=="__main__":
     # cifar-10 data for classification
     trainloader, testloader = get_downstream_data(percentage_of_data=opt.data_percentage, batch_size=opt.batch_size)
 
-    ####################################
     # linear evaluation supervised model
-    ####################################
     supervised_model = SupervisedModel(pretrained=True, linearevaluation=False)
     supervised_model = supervised_model.to(device)
     optimizer = optim.SGD(supervised_model.parameters(), lr=lr, momentum=momentum)
@@ -48,9 +46,8 @@ if __name__=="__main__":
     
     print("accuracy for supervised model: ", supervised_accuracy)
     logging.info("accuracy for supervised model: ", supervised_accuracy)
-    ####################################
+
     # linear evaluation standard SimSiam
-    ####################################
     simsiam_model = SimSiamDownstream(trained_model_path=opt.simsiam_path, device=device, linearevaluation=False)
     simsiam_model = simsiam_model.to(device)
     
@@ -61,15 +58,14 @@ if __name__=="__main__":
     print("accuracy for standard simsiam: ", simsiam_accuracy)
     logging.info("accuracy for standard simsiam: ", simsiam_accuracy)
 
-    ##################################
+    
     # linear evaluation fedavg SimSiam
-    ##################################
-    # fedavg_simsiam = torch.load(opt.fedavg_simsiam_path)
-    # fedavg_simsiam = DownstreamEvaluation(fedavg_simsiam)
-    # fedavg_simsiam = fedavg_simsiam.to(device)
-    # optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)  
-    # fedavg_simsiam = train_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
-    # fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
+    fedavg_simsiam = torch.load(opt.fedavg_simsiam_path)
+    fedavg_simsiam = DownstreamEvaluation(fedavg_simsiam)
+    fedavg_simsiam = fedavg_simsiam.to(device)
+    optimizer = optim.SGD(fedavg_simsiam.parameters(), lr=lr, momentum=momentum)  
+    fedavg_simsiam = train_downstream(opt.num_epochs, fedavg_simsiam, trainloader, criterion, optimizer, device)
+    fedavg_simsiam_accuracy = evaluate_downstream(fedavg_simsiam, testloader, device)
 
-    # print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
-    # logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
+    print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
+    logging.info("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)

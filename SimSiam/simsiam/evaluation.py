@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-from .simsiam import SimSiam
+from simsiam import SimSiam
 
 
 class SupervisedModel(nn.Module):
@@ -26,7 +26,7 @@ class SupervisedModel(nn.Module):
     
 
 class SimSiamDownstream(nn.Module):
-    def __init__(self, trained_model_path, device, linearevaluation=False):
+    def __init__(self, trained_model_path, device, linearevaluation=True):
         super(SimSiamDownstream, self).__init__()
         model = SimSiam()
         model.load_state_dict(torch.load(trained_model_path, map_location=device))
