@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-from simsiam import SimSiam
+from .simsiam import SimSiam
 
 
 class SupervisedModel(nn.Module):
