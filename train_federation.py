@@ -9,7 +9,7 @@ from SimSiam.federated_simsiam.datapreparation import *
 from SimSiam.federated_simsiam.evaluation import *
 import argparse
 
-
+# 
 if __name__=="__main__":
     """
     python3 train_federation.py --num_clients 2 --iid True --num_rounds 3 --local_epochs 5 --output_path 'fedavg_simsiam'
