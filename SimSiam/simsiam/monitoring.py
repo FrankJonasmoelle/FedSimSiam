@@ -47,9 +47,10 @@ def knn_monitor(model, train_images_tensor, train_labels_tensor, val_images_tens
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     # randomly sample subset of train and validation data
-    num_samples = 500
-    train_indices = torch.randperm(len(train_images_tensor))[:num_samples]
-    val_indices = torch.randperm(len(val_images_tensor))[:num_samples]
+    num_samples_train = len(train_images_tensor) // 3#  500
+    num_samples_val = len(val_images_tensor) // 3
+    train_indices = torch.randperm(len(train_images_tensor))[:num_samples_train]
+    val_indices = torch.randperm(len(val_images_tensor))[:num_samples_val]
 
     train_images_tensor = train_images_tensor[train_indices]
     train_labels_tensor = train_labels_tensor[train_indices]

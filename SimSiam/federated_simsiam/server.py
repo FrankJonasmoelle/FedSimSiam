@@ -92,8 +92,8 @@ class Server:
         self.setup()
         for i in range(self.num_rounds):
             self.train_federated_model()
-            downstream_accuracy = self.evaluate_global_model() 
-            print(downstream_accuracy)
+            # downstream_accuracy = self.evaluate_global_model(num_epochs=5) 
+            # print(downstream_accuracy)
         # save final averaged model
         PATH = "simsiam_fedavg.pth"
         torch.save(self.model.state_dict(), PATH)

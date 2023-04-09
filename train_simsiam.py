@@ -2,12 +2,16 @@ from SimSiam.simsiam.datapreparation import *
 from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
 from SimSiam.simsiam.evaluation import *
+from SimSiam.simsiam.monitoring import *
 import argparse
 import torch
 
 
 def train_simsiam(model, num_epochs, trainloader, optimizer, device):
     model.to(device)
+    # knn monitoring data
+    train_images_tensor, train_labels_tensor, val_images_tensor, val_labels_tensor = get_knn_monitoring_dataset()
+    
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         epoch_loss = 0.0
         running_loss = 0.0
@@ -37,6 +41,10 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 100:.3f}')
                 running_loss = 0.0
         print("epoch loss = ", epoch_loss/len(trainloader))
+        # knn montoring
+        k = 5
+        knn_acc = knn_monitor(model, train_images_tensor, train_labels_tensor, val_images_tensor, val_labels_tensor, k)
+        print(f'KNN accuracy at epoch {epoch + 1} is {knn_acc} %')
     print('Finished Training')
     return model
 

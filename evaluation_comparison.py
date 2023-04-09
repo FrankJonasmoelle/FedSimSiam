@@ -33,7 +33,7 @@ def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, crite
 
 if __name__=="__main__":
     """ 
-    python3 evaluation_comparison.py --data_percentage 0.1 --num_epochs 100 --batch_size 128 --simsiam_path 'models/2048_200_124_5_model.pth' --fedavg_simsiam_path 'models/simsiam_fedavg.pth'
+    python3 evaluation_comparison.py --data_percentage 0.1 --num_epochs 5 --batch_size 128 --simsiam_path 'simsiam_100_128.pth' --fedavg_simsiam_path 'simsiam_fedavg.pth'
 
     """
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
