@@ -11,7 +11,6 @@ class Client:
         self.local_epochs = local_epochs
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-
     def client_update(self):
         self.model.train()
         self.model.to(self.device)

@@ -10,15 +10,17 @@ from .evaluation import *
 
 
 class Server:
-    def __init__(self, num_clients, iid, num_rounds, local_epochs):
+    def __init__(self, num_clients, iid, num_rounds, local_epochs, batch_size, alpha=0.5):
         self.num_clients = num_clients
         self.iid = iid
         self.num_rounds = num_rounds # number of rounds that models should be trained on clients
         self.local_epochs = local_epochs # number of epochs each client is trained per round
+        self.batch_size = batch_size
+        self.alpha = alpha
 
     def setup(self):
         self.model = SimSiam()
-        local_trainloaders, test_loader = create_datasets(self.num_clients, self.iid)
+        local_trainloaders, test_loader = create_datasets(self.num_clients, self.iid, self.batch_size, self.alpha)
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.clients = self.create_clients(local_trainloaders)
         self.testloader = test_loader

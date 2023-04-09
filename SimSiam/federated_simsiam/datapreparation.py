@@ -49,7 +49,7 @@ class MyDataset(Dataset):
     def __len__(self):
         return len(self.x)
     
-def load_data_iid(trainset, num_clients):
+def load_data_iid(trainset, num_clients, batch_size):
     shuffled_indices = torch.randperm(len(trainset))
     training_x = trainset.data[shuffled_indices]
     training_y = torch.Tensor(trainset.targets)[shuffled_indices]
@@ -66,7 +66,7 @@ def load_data_iid(trainset, num_clients):
 
     local_trainset = [MyDataset(local_dataset[0], local_dataset[1], is_train=True) for local_dataset in new_split_datasets]
 
-    local_dataloaders = [DataLoader(dataset=dataset, batch_size=64, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
+    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
     return local_dataloaders
 
 
@@ -78,7 +78,7 @@ def sample_images(class_to_indices, proportions, n):
         indices.extend(samples)
     return indices
 
-def load_data_non_iid(trainset, num_clients, alpha=0.5):
+def load_data_non_iid(trainset, num_clients, batch_size, alpha=0.5):
     """Use Dirichlet distribution for non-iid loading"""
     class_to_indices = {i: [] for i in range(num_clients)}
     for idx, (_, label) in enumerate(trainset):
@@ -99,11 +99,11 @@ def load_data_non_iid(trainset, num_clients, alpha=0.5):
         client_dataset = Subset(trainset, client_indices)
         client_datasets.append(client_dataset)
 
-    local_dataloaders = [DataLoader(dataset=dataset, batch_size=64, shuffle=True, num_workers=2, pin_memory=True) for dataset in client_datasets]
+    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in client_datasets]
     return local_dataloaders
 
 
-def load_data_non_iid_naive(trainset, num_clients):
+def load_data_non_iid_naive(trainset, num_clients, batch_size):
     """sort by labels and distribute on clients
     Note: Legacy code
     """
@@ -125,10 +125,10 @@ def load_data_non_iid_naive(trainset, num_clients):
 
     local_trainset = [MyDataset(local_dataset[0], local_dataset[1], is_train=True) for local_dataset in new_split_datasets]
 
-    local_dataloaders = [DataLoader(dataset=dataset, batch_size=64, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
+    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
     return local_dataloaders
 
-def create_datasets(num_clients, iid, alpha=0.5):
+def create_datasets(num_clients, iid, batch_size, alpha):
     """Split the whole dataset in IID or non-IID manner for distributing to clients."""
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -139,11 +139,11 @@ def create_datasets(num_clients, iid, alpha=0.5):
                                            transform=transforms.Compose([transforms.ToTensor(), normalize]))
 
     if iid:
-        local_dataloaders = load_data_iid(trainset, num_clients)
+        local_dataloaders = load_data_iid(trainset, num_clients, batch_size)
     else: 
-        local_dataloaders = load_data_non_iid(trainset, num_clients, alpha=alpha)
+        local_dataloaders = load_data_non_iid(trainset, num_clients, batch_size, alpha)
 
 
-    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                             shuffle=False, num_workers=2, pin_memory=True)
     return local_dataloaders, testloader
