@@ -1,7 +1,6 @@
 import torch
 import torch.optim as optim
 
-#from SimSiam.simsiam.simsiam import D
 from ..simsiam.simsiam import D
 
 class Client:

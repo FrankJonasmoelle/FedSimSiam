@@ -9,13 +9,6 @@ from .client import *
 from .evaluation import *
 
 
-# from ..simsiam.datapreparation import *
-# from ..simsiam.evaluation import *
-# from ..simsiam.utils import *
-# from .client import *
-# from .datapreparation import *
-# from .evaluation import *
-
 class Server:
     def __init__(self, num_clients, iid, num_rounds, local_epochs):
         self.num_clients = num_clients
