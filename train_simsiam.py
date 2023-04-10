@@ -4,15 +4,19 @@ from SimSiam.simsiam.utils import *
 from SimSiam.simsiam.evaluation import *
 import argparse
 import torch
-
+from tqdm import tqdm
 
 def train_simsiam(model, num_epochs, trainloader, optimizer, device):
     model.to(device)
     model = torch.nn.DataParallel(model)
-    for epoch in range(num_epochs):  # loop over the dataset multiple times
+    global_progress = tqdm(range(0, num_epochs), desc=f'Training')
+
+    for epoch in global_progress:  # loop over the dataset multiple times
         epoch_loss = 0.0
         running_loss = 0.0
-        for i, ((images1, images2), labels) in enumerate(trainloader):            
+        local_progress = tqdm(trainloader, desc=f'Epoch {epoch}/{num_epochs}')
+
+        for i, ((images1, images2), labels) in enumerate(local_progress):            
             # get the inputs; data is a list of [inputs, labels]
             # inputs, labels = data
        #     images, _ = data[0], data[1].to(device)
@@ -21,13 +25,14 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
 
             data_dict = model.forward(images1.to(device, non_blocking=True), images2.to(device, non_blocking=True))
             loss = data_dict['loss'].mean() # ddp
-            # get the two views (with random augmentations):
+            
             # x1 = images[0].to(device)
             # x2 = images[1].to(device)
             # z1, p1 = model(x1)
             # z2, p2 = model(x2)
             # #loss = criterion(outputs, labels)
             # loss = D(p1, z2)/2 + D(p2, z1)/2
+            local_progress.set_postfix(data_dict)
             loss.backward()
             optimizer.step()
 
@@ -38,6 +43,8 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
                 print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 100:.3f}')
                 running_loss = 0.0
         print("epoch loss = ", epoch_loss/len(trainloader))
+        epoch_dict = {"epoch: ": epoch, "epoch_loss: ": epoch_loss/len(trainloader)}
+        global_progress.set_postfix(epoch_dict)
     print('Finished Training')
     return model
 
