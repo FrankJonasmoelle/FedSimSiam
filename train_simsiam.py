@@ -8,25 +8,26 @@ import torch
 
 def train_simsiam(model, num_epochs, trainloader, optimizer, device):
     model.to(device)
+    model = torch.nn.DataParallel(model)
     for epoch in range(num_epochs):  # loop over the dataset multiple times
         epoch_loss = 0.0
         running_loss = 0.0
-        for i, data in enumerate(trainloader):            
+        for i, ((images1, images2), labels) in enumerate(trainloader):            
             # get the inputs; data is a list of [inputs, labels]
             # inputs, labels = data
-            images, _ = data[0], data[1].to(device)
+       #     images, _ = data[0], data[1].to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
 
+            data_dict = model.forward(images1.to(device, non_blocking=True), images2.to(device, non_blocking=True))
+            loss = data_dict['loss'].mean() # ddp
             # get the two views (with random augmentations):
-            x1 = images[0].to(device)
-            x2 = images[1].to(device)
-            
-            # forward + backward + optimize
-            z1, p1 = model(x1)
-            z2, p2 = model(x2)
-            #loss = criterion(outputs, labels)
-            loss = D(p1, z2)/2 + D(p2, z1)/2
+            # x1 = images[0].to(device)
+            # x2 = images[1].to(device)
+            # z1, p1 = model(x1)
+            # z2, p2 = model(x2)
+            # #loss = criterion(outputs, labels)
+            # loss = D(p1, z2)/2 + D(p2, z1)/2
             loss.backward()
             optimizer.step()
 
@@ -38,6 +39,18 @@ def train_simsiam(model, num_epochs, trainloader, optimizer, device):
                 running_loss = 0.0
         print("epoch loss = ", epoch_loss/len(trainloader))
     print('Finished Training')
+    return model
+
+
+def get_backbone():
+    backbone = resnet18()
+    backbone.output_dim = backbone.fc.in_features
+    backbone.fc = torch.nn.Identity()
+    return backbone
+
+def get_model():
+    model =  SimSiam(get_backbone())
+    model.projector.set_layers(2)
     return model
 
 if __name__=="__main__":
@@ -61,7 +74,8 @@ if __name__=="__main__":
     trainloader, testloader = prepare_data(opt.batch_size)
     # load model
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    model = SimSiam()
+    # model = SimSiam()
+    model = get_model().to(device)
     # model = model.to(device)
     # init train settings
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
