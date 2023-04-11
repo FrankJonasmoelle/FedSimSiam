@@ -11,7 +11,6 @@ from tqdm import tqdm
 if __name__=="__main__":
     # python3 train_simsiam.py --epochs 1 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'test.pth'
 
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--epochs', type=int, default=1, help='number of epochs')
@@ -22,37 +21,11 @@ if __name__=="__main__":
     parser.add_argument('--output_path', type=str, default='simsiam.pth')
 
     opt = parser.parse_args()
-    # epochs = 25
-    # batch_size = 128
-    # lr = 0.03
-    # momentum = 0.9
-    # weight_decay = 0.0005
-    # output_path = "test.pth"
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
     model = SimSiam().to(device)
-
-    train_loader, memory_loader, test_loader = prepare_data(batch_size=opt.batch_size)
-    
-
-
     optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-
-    # optimizer = get_optimizer(
-    #     args.train.optimizer.name, model, 
-    #     lr=args.train.base_lr*args.train.batch_size/256, 
-    #     momentum=args.train.optimizer.momentum,
-    #     weight_decay=args.train.optimizer.weight_decay)
-
-
-    # lr_scheduler = LR_Scheduler(optimizer,
-    #     args.train.warmup_epochs, args.train.warmup_lr*args.train.batch_size/256, 
-    #     args.train.num_epochs, args.train.base_lr*args.train.batch_size/256, args.train.final_lr*args.train.batch_size/256, 
-    #     len(train_loader),
-    #     constant_predictor_lr=True # see the end of section 4.2 predictor
-    # )
-
+    train_loader, memory_loader, test_loader = prepare_data(batch_size=opt.batch_size)
 
     accuracy = 0 
     # Start training
@@ -79,6 +52,5 @@ if __name__=="__main__":
         epoch_dict = {"epoch":epoch, "accuracy":accuracy}
         global_progress.set_postfix(epoch_dict)
 
-    #PATH = opt.output_path
-    PATH = "test.pth"
+    PATH = opt.output_path
     torch.save(model.state_dict(), PATH)
