@@ -100,7 +100,7 @@ if __name__=="__main__":
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--data_percentage', type=float, default=0.01, help='percentage of data used for training')
+    parser.add_argument('--data_percentage', type=float, default=0.1, help='percentage of data used for training')
     parser.add_argument('--num_epochs', type=int, default=5, help="number of epochs used for downstream training")
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     parser.add_argument('--simsiam_path', type=str, default="simsiam.pth", help='path to trained simsiam model')
@@ -113,7 +113,7 @@ if __name__=="__main__":
     lr = 0.001
     momentum = 0.9
 
-    trainloader, testloader = get_downstream_data(0.1, batch_size=256)
+    trainloader, testloader = get_downstream_data(opt.data_percentage, batch_size=opt.batch_size)
 
     simsiam = LinearEvaluationSimSiam(opt.simsiam_path, device)
 
@@ -172,11 +172,7 @@ if __name__=="__main__":
     # Supervised model
     model = SupervisedModel(device, pretrained=True) # Change pretrained to true/false
     model = model.to(device)
-
     criterion = nn.CrossEntropyLoss()
-    lr = 0.03
-    momentum = 0.9
-    epochs = 30
     optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
 
@@ -184,7 +180,7 @@ if __name__=="__main__":
     model.classifier.train()
     # model.train() # this is finetuning
     
-    global_progress = tqdm(range(0, epochs), desc=f'Evaluating Supervised Model')
+    global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating Supervised Model')
     for epoch in global_progress:  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
