@@ -6,7 +6,6 @@ from ..simsiam.simsiam import *
 from ..simsiam.evaluation import *
 from .datapreparation import *
 from .client import *
-from .evaluation import *
 
 
 class Server:

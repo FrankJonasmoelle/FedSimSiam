@@ -3,13 +3,14 @@ from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
 from SimSiam.simsiam.evaluation import *
 from SimSiam.simsiam.monitoring import *
+from optimizers import get_optimizer, LR_Scheduler
 import argparse
 import torch
 from tqdm import tqdm
 
 
 if __name__=="__main__":
-    # python3 train_simsiam.py --epochs 1 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'test.pth'
+    # python3 train_simsiam.py --epochs 25 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'test.pth'
 
     parser = argparse.ArgumentParser()
 
@@ -22,10 +23,31 @@ if __name__=="__main__":
 
     opt = parser.parse_args()
 
+    train_loader, memory_loader, test_loader = prepare_data(batch_size=opt.batch_size)
+
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = SimSiam().to(device)
-    optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
-    train_loader, memory_loader, test_loader = prepare_data(batch_size=opt.batch_size)
+
+    #optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
+    
+    # fixed parameters
+    warmup_epochs = 10
+    warmup_lr = 0
+    base_lr = 0.03
+    final_lr = 0
+
+    optimizer = get_optimizer(
+        'sgd', model, 
+        lr=base_lr*opt.batch_size/256, 
+        momentum=opt.momentum,
+        weight_decay=opt.weight_decay)
+
+    lr_scheduler = LR_Scheduler(
+        optimizer, warmup_epochs, warmup_lr*opt.batch_size/256, 
+        opt.epochs, base_lr*opt.batch_size/256, final_lr*opt.batch_size/256, 
+        len(train_loader),
+        constant_predictor_lr=True # see the end of section 4.2 predictor
+    )
 
     accuracy = 0 
     # Start training
@@ -42,7 +64,7 @@ if __name__=="__main__":
 
             loss.backward()
             optimizer.step()
-            # lr_scheduler.step()
+            lr_scheduler.step()
             
             local_progress.set_postfix(data_dict)
 

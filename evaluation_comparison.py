@@ -1,14 +1,15 @@
 import argparse
-import tqdm
+import torch
 
 from SimSiam.simsiam.datapreparation import *
 from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
-from SimSiam.simsiam.evaluation import *
+# from SimSiam.simsiam.evaluation import *
 
 from SimSiam.federated_simsiam.client import *
 from SimSiam.federated_simsiam.server import *
 from SimSiam.federated_simsiam.datapreparation import *
+from tqdm import tqdm
 
 
 class LinearEvaluationSimSiam(nn.Module):
@@ -95,17 +96,13 @@ def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, crite
 
 if __name__=="__main__":
     """ 
-<<<<<<< HEAD
-    python3 evaluation_comparison.py --data_percentage 0.1 --num_epochs 5 --batch_size 128 --simsiam_path 'simsiam_100_128.pth' --fedavg_simsiam_path 'simsiam_fedavg.pth'
-=======
     python3 evaluation_comparison.py --data_percentage 0.1 --num_epochs 5 --batch_size 128 --simsiam_path 'simsiam.pth' --fedavg_simsiam_path 'models/simsiam_fedavg.pth'
->>>>>>> feature_other_simsiam
 
     """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--data_percentage', type=float, default=0.1, help='percentage of data used for training')
-    parser.add_argument('--num_epochs', type=int, default=5, help="number of epochs used for downstream training")
+    parser.add_argument('--epochs', type=int, default=5, help="number of epochs used for downstream training")
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     parser.add_argument('--simsiam_path', type=str, default="simsiam.pth", help='path to trained simsiam model')
     parser.add_argument('--fedavg_simsiam_path', type=str, default="fedavg_simsiam.pth", help='path to trained fedaveraged simsiam model')
@@ -169,7 +166,7 @@ if __name__=="__main__":
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct // total
-    print(f'Accuracy of the network on test images: {accuracy} %')
+    print(f'Accuracy of SimSiam on test images: {accuracy} %')
 
 
 
