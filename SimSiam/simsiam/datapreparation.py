@@ -30,16 +30,20 @@ def prepare_data(batch_size=64):
         transforms.ToTensor(),
         normalize
     ]
-
-    trainset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=True,
+    #train_set, val_set = torch.utils.data.random_split(trainset, [45000, 5000])
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=TwoCropsTransform(transforms.Compose(augmentation)))
-    testset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=False,
+    # memoryset used for knn monitoring
+    memoryset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                            download=True, transform=transforms.Compose([transforms.ToTensor(), normalize]))
+    
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                         download=True, transform=transforms.Compose([transforms.ToTensor(), normalize]))
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, 
-                                                shuffle=True, num_workers=2, pin_memory=True)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, num_workers=4)
+    
+    memoryloader = torch.utils.data.DataLoader(memoryset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                                shuffle=False, num_workers=2, pin_memory=True)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    return trainloader, testloader
+    return trainloader, memoryloader, testloader
