@@ -4,6 +4,18 @@ import torch.nn.functional as F
 from torchvision.models import resnet18
 
 
+def D(p, z, version='simplified'): # negative cosine similarity
+    if version == 'original':
+        z = z.detach() # stop gradient
+        p = F.normalize(p, dim=1) # l2-normalize 
+        z = F.normalize(z, dim=1) # l2-normalize 
+        return -(p*z).sum(dim=1).mean()
+
+    elif version == 'simplified':# same thing, much faster. Scroll down, speed test in __main__
+        return - F.cosine_similarity(p, z.detach(), dim=-1).mean()
+    else:
+        raise Exception
+    
 class ProjectionMLP(nn.Module):
     """Projection MLP f"""
     def __init__(self, in_features, h1_features, h2_features, out_features):
