@@ -21,7 +21,7 @@ def prepare_data(batch_size=64):
 
     # MoCo v2's aug: similar to SimCLR https://arxiv.org/abs/2002.05709
     augmentation = [
-        transforms.RandomResizedCrop(224, scale=(0.2, 1.)),
+        transforms.RandomResizedCrop(32, scale=(0.2, 1.)),
         transforms.RandomApply([
             transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)  # not strengthened
         ], p=0.8),
