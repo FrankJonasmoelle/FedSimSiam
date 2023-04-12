@@ -1,5 +1,4 @@
 # code from https://github.com/PatrickHua/SimSiam/blob/75a7c51362c30e8628ad83949055ef73829ce786/optimizers/lr_scheduler.py
-import torch
 import numpy as np
 
 class LR_Scheduler(object):

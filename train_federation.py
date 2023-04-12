@@ -11,9 +11,9 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 2 --iid True --alpha 0.5 --num_rounds 1 --local_epochs 5 --batch_size 128 --output_path 'fedavg_simsiam.pth'
+    python3 train_federation.py --num_clients 5 --iid True --alpha 0.5 --num_rounds 5 --local_epochs 5 --batch_size 128 --output_path 'fedavg_iid_5_5.pth'
     """
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()  
     
     parser.add_argument('--num_clients', type=int, default=2, help='number of clients')
     parser.add_argument('--iid', type=bool, default=True, help='split dataset iid or not')

@@ -3,10 +3,11 @@ from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
 from SimSiam.simsiam.evaluation import *
 from SimSiam.simsiam.monitoring import *
-from optimizers import get_optimizer, LR_Scheduler
+from SimSiam.optimizers import get_optimizer, LR_Scheduler
 import argparse
 import torch
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 if __name__=="__main__":
@@ -50,6 +51,7 @@ if __name__=="__main__":
     )
 
     accuracy = 0 
+    knn_accuracies = []
     # Start training
     global_progress = tqdm(range(0, opt.epochs), desc=f'Training')
     for epoch in global_progress:
@@ -70,9 +72,14 @@ if __name__=="__main__":
 
         #if args.train.knn_monitor and epoch % args.train.knn_interval == 0: 
         accuracy = knn_monitor(model.encoder, memory_loader, test_loader, device, k=min(25, len(memory_loader.dataset))) 
-        
+        knn_accuracies.append(accuracy)
         epoch_dict = {"epoch":epoch, "accuracy":accuracy}
         global_progress.set_postfix(epoch_dict)
 
+    plt.plot(knn_accuracies)
+    plt.ylim(0, 100)
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.savefig("knn_accuracy.png")
     PATH = opt.output_path
     torch.save(model.state_dict(), PATH)

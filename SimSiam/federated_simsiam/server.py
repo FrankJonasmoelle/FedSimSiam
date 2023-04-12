@@ -28,7 +28,7 @@ class Server:
     def create_clients(self, local_trainloaders):
         clients = []
         for i, dataloader in enumerate(local_trainloaders):
-            client = Client(client_id=i, model=SimSiam().to(self.device), dataloader=dataloader, local_epochs=self.local_epochs)
+            client = Client(client_id=i, model=self.model, dataloader=dataloader, local_epochs=self.local_epochs)
             clients.append(client)
         return clients
 
@@ -66,25 +66,6 @@ class Server:
         total_size = sum([len(client.dataloader.dataset[1]) for client in self.clients])
         mixing_coefficients = [len(client.dataloader.dataset[1]) / total_size for client in self.clients]
         self.average_model(mixing_coefficients)
-    
-    def evaluate_global_model(self, num_epochs):
-        """Linear evaluation on 1% of CIFAR-10 Training data"""
-        trainloader, testloader = get_downstream_data(percentage_of_data=0.01, batch_size=64)
-
-        model = DownstreamEvaluation(self.model)
-        model = model.to(self.device)
-
-        model.simsiam.eval()
-        model.classifier.train()
-
-        # Train SimSiam on downstream task
-        criterion = nn.CrossEntropyLoss()
-        optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-        train_downstream(num_epochs, model, trainloader, criterion, optimizer, device=self.device)
-
-        # Evaluate SimSiam on downstream task
-        evaluate_simsiam_downstream(model, testloader, self.device)
     
     
     def learn_federated_simsiam(self):
