@@ -12,12 +12,12 @@ class Client:
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = model.to(self.device)
         self.local_epochs = local_epochs
-        # self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     def client_update(self):
-        # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        # self.model.to(device)
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.model.to(device)
         self.model.train()
+        
         # optimizer = optim.SGD(self.model.parameters(), lr=0.03, momentum=0.9, weight_decay=0.0005)
 
         # fixed parameters

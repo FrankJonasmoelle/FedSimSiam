@@ -1,17 +1,21 @@
 import torch
 import copy
 from collections import OrderedDict
+import matplotlib.pyplot as plt
 
 from ..simsiam.simsiam import *
 from ..simsiam.evaluation import *
+from ..simsiam.monitoring import *
+from ..simsiam.datapreparation import prepare_data
 from .datapreparation import *
 from .client import *
 
 
 class Server:
-    def __init__(self, num_clients, iid, num_rounds, local_epochs, batch_size, alpha=0.5):
+    def __init__(self, num_clients, iid, output_path, num_rounds, local_epochs, batch_size, alpha=0.5):
         self.num_clients = num_clients
         self.iid = iid
+        self.output_path = output_path 
         self.num_rounds = num_rounds # number of rounds that models should be trained on clients
         self.local_epochs = local_epochs # number of epochs each client is trained per round
         self.batch_size = batch_size
@@ -69,12 +73,27 @@ class Server:
     
     
     def learn_federated_simsiam(self):
+        knn_accuracies = [0]
+        _, memoryloader, testloader = prepare_data(batch_size=self.batch_size)
+
         self.setup()
         for i in range(self.num_rounds):
+            print(f"Round {i+1}")
             self.train_federated_model()
-            # downstream_accuracy = self.evaluate_global_model(num_epochs=5) 
-            # print(downstream_accuracy)
-        # save final averaged model
-        PATH = "simsiam_fedavg.pth"
-        torch.save(self.model.state_dict(), PATH)
-        self.send_model()
+            self.send_model()
+            # knn monitoring after each round
+            accuracy = knn_monitor(self.model.encoder, memoryloader, testloader, self.device, k=min(25, len(memoryloader.dataset))) 
+            knn_accuracies.append(accuracy)
+
+            # save final averaged model
+            torch.save(self.model.state_dict(), self.output_path)
+            
+            # plot knn
+            plt.plot(knn_accuracies)
+            plt.ylim(0, 100)
+            plt.xlabel("round")
+            plt.ylabel("accuracy")
+            if self.iid:
+                plt.savefig("knn_accuracy_fedavg_iid.png")
+            else:
+                plt.savefig("knn_accuracy_fedavg_noniid.png")

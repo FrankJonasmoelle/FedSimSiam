@@ -57,25 +57,25 @@ class SupervisedModel(nn.Module):
         return x
     
 
-def linear_evaluation_supervised(trainloader, testloader, criterion, lr, momentum):
-    """Trains and evaluates a supervised model on CIFAR-10"""
+# def linear_evaluation_supervised(trainloader, testloader, criterion, lr, momentum):
+#     """Trains and evaluates a supervised model on CIFAR-10"""
 
-    model = SupervisedModel(pretrained=True, linearevaluation=True)
-    model = model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-    model = train_downstream(opt.num_epochs, model, trainloader, criterion, optimizer, device)
-    accuracy = evaluate_downstream(model, testloader, device)
-    return accuracy
+#     model = SupervisedModel(pretrained=True, linearevaluation=True)
+#     model = model.to(device)
+#     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+#     model = train_downstream(opt.num_epochs, model, trainloader, criterion, optimizer, device)
+#     accuracy = evaluate_downstream(model, testloader, device)
+#     return accuracy
 
-def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, criterion, lr, momentum):
-    """Trains and evaluates SimSIam on CIFAR-10"""
+# def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, criterion, lr, momentum):
+#     """Trains and evaluates SimSIam on CIFAR-10"""
 
-    simsiam = SimSiamDownstream(trained_model_path=trained_model_path, device=device, linearevaluation=True)
-    simsiam = simsiam.to(device)
-    optimizer = optim.SGD(simsiam.parameters(), lr=lr, momentum=momentum)
-    simsiam = train_simsiam_downstream(opt.num_epochs, simsiam, trainloader, criterion, optimizer, device)
-    accuracy = evaluate_simsiam_downstream(simsiam, testloader, device)
-    return accuracy
+#     simsiam = SimSiamDownstream(trained_model_path=trained_model_path, device=device, linearevaluation=True)
+#     simsiam = simsiam.to(device)
+#     optimizer = optim.SGD(simsiam.parameters(), lr=lr, momentum=momentum)
+#     simsiam = train_simsiam_downstream(opt.num_epochs, simsiam, trainloader, criterion, optimizer, device)
+#     accuracy = evaluate_simsiam_downstream(simsiam, testloader, device)
+#     return accuracy
 
 # # cifar-10 data for classification
 # trainloader, testloader = get_downstream_data(percentage_of_data=opt.data_percentage, batch_size=opt.batch_size)
@@ -96,13 +96,14 @@ def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, crite
 
 if __name__=="__main__":
     """ 
-    python3 evaluation_comparison.py --data_percentage 0.1 --num_epochs 5 --batch_size 128 --simsiam_path 'simsiam.pth' --fedavg_simsiam_path 'models/simsiam_fedavg.pth'
+    python3 evaluation_comparison.py --data_percentage 0.1 --epochs 50 --lr 0.03 --batch_size 32 --simsiam_path 'simsiam_800.pth'
 
     """
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--data_percentage', type=float, default=0.1, help='percentage of data used for training')
     parser.add_argument('--epochs', type=int, default=5, help="number of epochs used for downstream training")
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate for downstream training')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     parser.add_argument('--simsiam_path', type=str, default="simsiam.pth", help='path to trained simsiam model')
     parser.add_argument('--fedavg_simsiam_path', type=str, default="fedavg_simsiam.pth", help='path to trained fedaveraged simsiam model')
@@ -111,7 +112,7 @@ if __name__=="__main__":
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     criterion = nn.CrossEntropyLoss()
-    lr = 0.001
+    lr = opt.lr
     momentum = 0.9
 
     trainloader, testloader = get_downstream_data(opt.data_percentage, batch_size=opt.batch_size)
@@ -120,10 +121,11 @@ if __name__=="__main__":
 
     # training
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(simsiam.parameters(), lr=lr, momentum=momentum)
+    optimizer = torch.optim.SGD(simsiam.classifier.parameters(), lr=lr, momentum=momentum)
 
-    simsiam.encoder.eval()   # this is linear evaluation
-    simsiam.classifier.train()
+    # simsiam.encoder.eval()   # this is linear evaluation
+    # simsiam.classifier.train()
+   
     # simsiam.train() # this is finetuning
     
     global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating SimSiam')
@@ -171,15 +173,25 @@ if __name__=="__main__":
 
 
     # Supervised model
-    model = SupervisedModel(device, pretrained=True) # Change pretrained to true/false
-    model = model.to(device)
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+    # model = SupervisedModel(device, pretrained=True) # Change pretrained to true/false
+    # model = model.to(device)
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
 
 
-    model.model.eval()    # this is linear evaluation
-    model.classifier.train()
+    # model.model.eval()    # this is linear evaluation
+    # model.classifier.train()
     # model.train() # this is finetuning
+
+    model = resnet18(pretrained=True).to(device)
+
+# Replace the last layer with a linear layer for CIFAR-10
+    model.fc = nn.Linear(model.fc.in_features, 10).to(device)
+
+    # Train the linear layer
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(model.fc.parameters(), lr=lr, momentum=momentum)
+
     
     global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating Supervised Model')
     for epoch in global_progress:  # loop over the dataset multiple times
@@ -224,5 +236,3 @@ if __name__=="__main__":
     accuracy = 100 * correct // total
     print(f'Accuracy of the supervised network on test images: {accuracy} %')
 
-
-    # TODO: FEdavg Simsiam

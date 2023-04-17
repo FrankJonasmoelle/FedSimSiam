@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 if __name__=="__main__":
-    # python3 train_simsiam.py --epochs 25 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'test.pth'
+    # python3 train_simsiam.py --epochs 800 --batch_size 64 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam_800.pth'
 
     parser = argparse.ArgumentParser()
 
@@ -51,7 +51,7 @@ if __name__=="__main__":
     )
 
     accuracy = 0 
-    knn_accuracies = []
+    knn_accuracies = [0]
     # Start training
     global_progress = tqdm(range(0, opt.epochs), desc=f'Training')
     for epoch in global_progress:

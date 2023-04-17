@@ -11,7 +11,7 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 5 --iid True --alpha 0.5 --num_rounds 5 --local_epochs 5 --batch_size 128 --output_path 'fedavg_iid_5_5.pth'
+    python3 train_federation.py --num_clients 5 --iid True --alpha 0.5 --num_rounds 7 --local_epochs 100 --batch_size 64 --output_path 'fedavg_iid_5_7_100.pth'
     """
     parser = argparse.ArgumentParser()  
     
@@ -27,7 +27,7 @@ if __name__=="__main__":
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-    server = Server(num_clients=opt.num_clients, iid=opt.iid, num_rounds=opt.num_rounds, 
+    server = Server(num_clients=opt.num_clients, iid=opt.iid, output_path=opt.output_path, num_rounds=opt.num_rounds, 
                     local_epochs=opt.local_epochs, batch_size=opt.batch_size)
     # trains the federated model
     server.learn_federated_simsiam()
