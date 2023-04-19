@@ -55,43 +55,6 @@ class SupervisedModel(nn.Module):
         x = self.model(x)
         x = self.classifier(x)
         return x
-    
-
-# def linear_evaluation_supervised(trainloader, testloader, criterion, lr, momentum):
-#     """Trains and evaluates a supervised model on CIFAR-10"""
-
-#     model = SupervisedModel(pretrained=True, linearevaluation=True)
-#     model = model.to(device)
-#     optimizer = optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-#     model = train_downstream(opt.num_epochs, model, trainloader, criterion, optimizer, device)
-#     accuracy = evaluate_downstream(model, testloader, device)
-#     return accuracy
-
-# def linear_evaluation_simsiam(trained_model_path, trainloader, testloader, criterion, lr, momentum):
-#     """Trains and evaluates SimSIam on CIFAR-10"""
-
-#     simsiam = SimSiamDownstream(trained_model_path=trained_model_path, device=device, linearevaluation=True)
-#     simsiam = simsiam.to(device)
-#     optimizer = optim.SGD(simsiam.parameters(), lr=lr, momentum=momentum)
-#     simsiam = train_simsiam_downstream(opt.num_epochs, simsiam, trainloader, criterion, optimizer, device)
-#     accuracy = evaluate_simsiam_downstream(simsiam, testloader, device)
-#     return accuracy
-
-# # cifar-10 data for classification
-# trainloader, testloader = get_downstream_data(percentage_of_data=opt.data_percentage, batch_size=opt.batch_size)
-
-# # linear evaluation supervised model
-# supervised_accuracy = linear_evaluation_supervised(trainloader, testloader, criterion, lr, momentum)
-# print("accuracy for supervised model: ", supervised_accuracy)
-
-# # linear evaluation SimSiam
-# simsiam_accuracy = linear_evaluation_simsiam(opt.simsiam_path, trainloader, testloader, criterion, lr, momentum)
-# print("accuracy for standard simsiam: ", simsiam_accuracy)
-
-# # linear evaluation fedavg SimSiam
-# fedavg_simsiam_accuracy = linear_evaluation_simsiam(opt.fedavg_simsiam_path, trainloader, testloader, criterion, lr, momentum)
-# print("accuracy for fedAVG simsiam: ", fedavg_simsiam_accuracy)
-#
 
 
 if __name__=="__main__":
@@ -117,40 +80,28 @@ if __name__=="__main__":
 
     trainloader, testloader = get_downstream_data(opt.data_percentage, batch_size=opt.batch_size)
 
+
+    # SimSiam
     simsiam = LinearEvaluationSimSiam(opt.simsiam_path, device)
 
-    # training
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(simsiam.classifier.parameters(), lr=lr, momentum=momentum)
 
-    # simsiam.encoder.eval()   # this is linear evaluation
-    # simsiam.classifier.train()
-   
+    simsiam.encoder.eval()   # this is linear evaluation
+    simsiam.classifier.train()
     # simsiam.train() # this is finetuning
     
     global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating SimSiam')
     for epoch in global_progress:  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader):
-            # get the inputs; data is a list of [inputs, labels]
-            #inputs, labels = data
             inputs, labels = data[0].to(device), data[1].to(device)
-            # zero the parameter gradients
             optimizer.zero_grad()
 
-            # forward + backward + optimize
             outputs = simsiam(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
-            # print statistics
-            running_loss += loss.item()
-            if i % 500 == 499:    # print every 2000 mini-batches
-                print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 500:.3f}')
-                running_loss = 0.0
-    print('Finished Training')
-
 
     # evaluation
     simsiam.eval()
@@ -173,22 +124,12 @@ if __name__=="__main__":
 
 
     # Supervised model
-    # model = SupervisedModel(device, pretrained=True) # Change pretrained to true/false
-    # model = model.to(device)
-    # criterion = nn.CrossEntropyLoss()
-    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
+    model = resnet18(pretrained=True)
+    # Replace the last layer with a linear layer for CIFAR-10
+    model.fc = nn.Linear(model.fc.in_features, 10)
+    model = model.to(device)
 
-
-    # model.model.eval()    # this is linear evaluation
-    # model.classifier.train()
-    # model.train() # this is finetuning
-
-    model = resnet18(pretrained=True).to(device)
-
-# Replace the last layer with a linear layer for CIFAR-10
-    model.fc = nn.Linear(model.fc.in_features, 10).to(device)
-
-    # Train the linear layer
+    # Train the linear layer (only input model.fc parameters into optimizer)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.fc.parameters(), lr=lr, momentum=momentum)
 
@@ -197,39 +138,22 @@ if __name__=="__main__":
     for epoch in global_progress:  # loop over the dataset multiple times
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
-            # get the inputs; data is a list of [inputs, labels]
-            #inputs, labels = data
             inputs, labels = data[0].to(device), data[1].to(device)
             # zero the parameter gradients
             optimizer.zero_grad()
-
-            # forward + backward + optimize
-            #with torch.no_grad():
             outputs = model(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
-            # print statistics
-            running_loss += loss.item()
-            if i % 500 == 499:    # print every 2000 mini-batches
-                print(f'[{epoch + 1 }, {i + 1:5d}] loss: {running_loss / 500:.3f}')
-                running_loss = 0.0
-
-    print('Finished Training')
-
     # eval
     model.eval()
-    
     correct = 0
     total = 0
-    # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in testloader:
             inputs, labels = data[0].to(device), data[1].to(device)
-            # calculate outputs by running images through the network
             outputs = model(inputs)
-            # the class with the highest energy is what we choose as prediction
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()

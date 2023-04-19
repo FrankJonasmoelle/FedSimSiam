@@ -4,6 +4,7 @@ models/
 
 .simsiam-venv/
 simsiam_*
+fedavg_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -103,31 +103,6 @@ def load_data_non_iid(trainset, num_clients, batch_size, alpha=0.5):
     return local_dataloaders
 
 
-def load_data_non_iid_naive(trainset, num_clients, batch_size):
-    """sort by labels and distribute on clients
-    Note: Legacy code
-    """
-    # If non-iid: Sort by label and split to clients
-    labels = trainset.targets
-    sorted_indices = torch.as_tensor([i[0] for i in sorted(enumerate(labels), key=lambda x:x[1])])
-    training_x = trainset.data[sorted_indices]
-    training_y = torch.Tensor(trainset.targets)[sorted_indices]
-
-    split_size = len(trainset) // num_clients
-    split_datasets = list(
-                        zip(
-                            torch.split(torch.Tensor(training_x), split_size),
-                            torch.split(torch.Tensor(training_y), split_size)
-                        )
-                    )
-    new_split_datasets = [(dataset[0].numpy(), dataset[1].tolist()) for dataset in split_datasets]
-    new_split_datasets = [(dataset[0], list(map(int, dataset[1]))) for dataset in new_split_datasets]
-
-    local_trainset = [MyDataset(local_dataset[0], local_dataset[1], is_train=True) for local_dataset in new_split_datasets]
-
-    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
-    return local_dataloaders
-
 def create_datasets(num_clients, iid, batch_size, alpha):
     """Split the whole dataset in IID or non-IID manner for distributing to clients."""
 

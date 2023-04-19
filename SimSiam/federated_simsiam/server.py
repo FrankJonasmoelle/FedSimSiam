@@ -80,7 +80,6 @@ class Server:
         for i in range(self.num_rounds):
             print(f"Round {i+1}")
             self.train_federated_model()
-            self.send_model()
             # knn monitoring after each round
             accuracy = knn_monitor(self.model.encoder, memoryloader, testloader, self.device, k=min(25, len(memoryloader.dataset))) 
             knn_accuracies.append(accuracy)
