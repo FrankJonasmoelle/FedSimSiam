@@ -74,32 +74,41 @@ def sample_images(class_to_indices, proportions, n):
     indices = []
     for c, prop in enumerate(proportions):
         num_samples = int(n * prop)
+        num_samples = min(num_samples, len(class_to_indices[c]))
         samples = np.random.choice(class_to_indices[c], size=num_samples, replace=False)
         indices.extend(samples)
     return indices
 
+
 def load_data_non_iid(trainset, num_clients, batch_size, alpha=0.5):
-    """Use Dirichlet distribution for non-iid loading"""
-    class_to_indices = {i: [] for i in range(num_clients)}
+    num_classes = 10
+    class_to_indices = {i: [] for i in range(num_classes)}
     for idx, (_, label) in enumerate(trainset):
         class_to_indices[label].append(idx)
 
     # Distribute the dataset in a non-iid way onto clients
-    client_datasets = []
+    client_indices = {i: [] for i in range(num_clients)}
     n_per_client = len(trainset) // num_clients
 
-    for _ in range(num_clients):
+    for i in range(num_clients):
         # Sample a proportion vector from the Dirichlet distribution
         proportions = np.random.dirichlet([alpha] * num_clients)
-        
         # Sample images from each class based on the proportion vector
-        client_indices = sample_images(class_to_indices, proportions, n_per_client)
-        
+        sampled_indices = sample_images(class_to_indices, proportions, n_per_client)
+        print(len(sampled_indices))
         # Create a subset of the dataset for the client
-        client_dataset = Subset(trainset, client_indices)
-        client_datasets.append(client_dataset)
+        client_indices[i] = sampled_indices
 
-    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in client_datasets]
+    xs = []
+    ys = []
+    for i in range(num_clients):
+        training_x = trainset.data[client_indices[i]]
+        training_y = torch.Tensor(trainset.targets)[client_indices[i]]
+        xs.append(training_x)
+        ys.append(training_y)
+
+    local_trainset = [MyDataset(xs[i], ys[i], is_train=True) for i in range(num_clients)]
+    local_dataloaders = [DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True) for dataset in local_trainset]
     return local_dataloaders
 
 
@@ -109,8 +118,8 @@ def create_datasets(num_clients, iid, batch_size, alpha):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
     
-    trainset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=True, download=True)
-    testset = torchvision.datasets.CIFAR10(root='./SimSiam/data', train=False, download=True, 
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, 
                                            transform=transforms.Compose([transforms.ToTensor(), normalize]))
 
     if iid:
