@@ -9,6 +9,7 @@ from SimSiam.simsiam.utils import *
 from SimSiam.federated_simsiam.client import *
 from SimSiam.federated_simsiam.server import *
 from SimSiam.federated_simsiam.datapreparation import *
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
@@ -91,8 +92,11 @@ if __name__=="__main__":
     simsiam.classifier.train()
     # simsiam.train() # this is finetuning
     
-    global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating SimSiam')
+    accuracies = []
+    global_progress = tqdm(range(0, opt.epochs), desc=f'Training SimSiam')
     for epoch in global_progress:  # loop over the dataset multiple times
+        correct = 0
+        total = 0
         running_loss = 0.0
         for i, data in enumerate(trainloader):
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -103,6 +107,22 @@ if __name__=="__main__":
             loss.backward()
             optimizer.step()
 
+            # print statistics
+            # running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+   
+        # print accuracy after every epoch
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+
+    plt.plot(accuracies)
+    plt.ylim(0, 100)
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.savefig("simsiam_classification_accuracies.png")
     # evaluation
     simsiam.eval()
     
@@ -134,8 +154,11 @@ if __name__=="__main__":
     optimizer = optim.SGD(model.fc.parameters(), lr=lr, momentum=momentum)
 
     
-    global_progress = tqdm(range(0, opt.epochs), desc=f'Evaluating Supervised Model')
+    global_progress = tqdm(range(0, opt.epochs), desc=f'Training Supervised Model')
+    accuracies = []
     for epoch in global_progress:  # loop over the dataset multiple times
+        correct = 0
+        total = 0
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -145,6 +168,24 @@ if __name__=="__main__":
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+
+            # print statistics
+            # running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+   
+        # print accuracy after every epoch
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+
+    plt.plot(accuracies)
+    plt.ylim(0, 100)
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.savefig("supervised_classification_accuracies.png")
+
 
     # eval
     model.eval()

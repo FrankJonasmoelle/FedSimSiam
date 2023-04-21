@@ -2,6 +2,8 @@ data/
 models/
 *.idea
 
+*.png
+
 .simsiam-venv/
 simsiam_*
 fedavg_*

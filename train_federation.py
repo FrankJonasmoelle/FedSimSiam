@@ -11,12 +11,11 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 5 --iid True --alpha 0.5 --num_rounds 7 --local_epochs 100 --batch_size 64 --output_path 'fedavg_iid_5_7_100.pth'
+    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 1 --local_epochs 1 --batch_size 64 --output_path 'test.pth'
     """
     parser = argparse.ArgumentParser()  
     
     parser.add_argument('--num_clients', type=int, default=2, help='number of clients')
-    parser.add_argument('--iid', type=bool, default=True, help='split dataset iid or not')
     parser.add_argument('--alpha', type=float, default=0.5, help='alpha determines level of non-iid-nes')
     parser.add_argument('--num_rounds', type=int, default=1, help='number of training rounds')
     parser.add_argument('--local_epochs', type=int, default=5, help='number of client epochs for training')
@@ -25,9 +24,9 @@ if __name__=="__main__":
 
     opt = parser.parse_args()
 
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
-    server = Server(num_clients=opt.num_clients, iid=opt.iid, output_path=opt.output_path, num_rounds=opt.num_rounds, 
+    IID = False
+    
+    server = Server(num_clients=opt.num_clients, iid=IID, output_path=opt.output_path, num_rounds=opt.num_rounds, 
                     local_epochs=opt.local_epochs, batch_size=opt.batch_size)
     # trains the federated model
     server.learn_federated_simsiam()

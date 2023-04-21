@@ -95,7 +95,6 @@ def load_data_non_iid(trainset, num_clients, batch_size, alpha=0.5):
         proportions = np.random.dirichlet([alpha] * num_clients)
         # Sample images from each class based on the proportion vector
         sampled_indices = sample_images(class_to_indices, proportions, n_per_client)
-        print(len(sampled_indices))
         # Create a subset of the dataset for the client
         client_indices[i] = sampled_indices
 
@@ -123,8 +122,10 @@ def create_datasets(num_clients, iid, batch_size, alpha):
                                            transform=transforms.Compose([transforms.ToTensor(), normalize]))
 
     if iid:
+        print("IID data preparation")
         local_dataloaders = load_data_iid(trainset, num_clients, batch_size)
     else: 
+        print("Non-IID data preparation")
         local_dataloaders = load_data_non_iid(trainset, num_clients, batch_size, alpha)
 
 
