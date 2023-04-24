@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
+from torch.utils.data import random_split
+
 
 from .simsiam import SimSiam
 
@@ -63,13 +65,22 @@ def get_downstream_data(percentage_of_data=0.1, batch_size=4):
     
     # Train only on *percentage_of_data* of training data
     subset = percentage_of_data  * len(trainset)
-    trainset_onepercent = torch.utils.data.Subset(trainset, [i for i in range(int(subset))])
+    train_subset = torch.utils.data.Subset(trainset, [i for i in range(int(subset))])
 
-    trainloader = torch.utils.data.DataLoader(trainset_onepercent, batch_size=batch_size,
+    # validation set
+    train_size = int(0.8 * len(train_subset))
+    val_size = len(train_subset) - train_size
+    train_subset, val_subset = random_split(train_subset, [train_size, val_size])
+
+
+    trainloader = torch.utils.data.DataLoader(train_subset, batch_size=batch_size,
                                             shuffle=True, num_workers=2)
+    
+    valloader = torch.utils.data.DataLoader(val_subset, batch_size=batch_size, shuffle=False, num_workers=2)
+
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                             shuffle=False, num_workers=2)
-    return trainloader, testloader
+    return trainloader, valloader, testloader
 
 
 def train_downstream(num_epochs, model, trainloader, criterion, optimizer, device):

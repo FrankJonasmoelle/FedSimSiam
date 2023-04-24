@@ -11,7 +11,7 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 1 --local_epochs 1 --batch_size 64 --output_path 'test.pth'
+    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 20 --local_epochs 10 --batch_size 64 --output_path 'fedavg_iid_5_20_10.pth'
     """
     parser = argparse.ArgumentParser()  
     
@@ -24,8 +24,8 @@ if __name__=="__main__":
 
     opt = parser.parse_args()
 
-    IID = False
-    
+    IID = True
+
     server = Server(num_clients=opt.num_clients, iid=IID, output_path=opt.output_path, num_rounds=opt.num_rounds, 
                     local_epochs=opt.local_epochs, batch_size=opt.batch_size)
     # trains the federated model

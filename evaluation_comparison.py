@@ -60,7 +60,7 @@ class SupervisedModel(nn.Module):
 
 if __name__=="__main__":
     """ 
-    python3 evaluation_comparison.py --data_percentage 0.1 --epochs 50 --lr 0.03 --batch_size 32 --simsiam_path 'simsiam_800.pth'
+    python3 evaluation_comparison.py --data_percentage 0.1 --epochs 30 --lr 0.1 --batch_size 32 --simsiam_path 'fedavg_iid_5_7_100.pth'
 
     """
     parser = argparse.ArgumentParser()
@@ -70,7 +70,7 @@ if __name__=="__main__":
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate for downstream training')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for training')
     parser.add_argument('--simsiam_path', type=str, default="simsiam.pth", help='path to trained simsiam model')
-    parser.add_argument('--fedavg_simsiam_path', type=str, default="fedavg_simsiam.pth", help='path to trained fedaveraged simsiam model')
+    # parser.add_argument('--fedavg_simsiam_path', type=str, default="fedavg_simsiam.pth", help='path to trained fedaveraged simsiam model')
 
     opt = parser.parse_args()
 
@@ -79,8 +79,9 @@ if __name__=="__main__":
     lr = opt.lr
     momentum = 0.9
 
-    trainloader, testloader = get_downstream_data(opt.data_percentage, batch_size=opt.batch_size)
+    trainloader, valloader, testloader = get_downstream_data(opt.data_percentage, batch_size=opt.batch_size)
 
+    # split train
 
     # SimSiam
     simsiam = LinearEvaluationSimSiam(opt.simsiam_path, device)
@@ -108,27 +109,40 @@ if __name__=="__main__":
             optimizer.step()
 
             # print statistics
-            # running_loss += loss.item()
+            running_loss += loss.item()
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
    
         # print accuracy after every epoch
-        acc = 100 * correct / total
-        accuracies.append(acc)
-        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+        # acc = 100 * correct / total
+        # accuracies.append(acc)
+        # print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in valloader:
+                inputs, labels = data[0].to(device), data[1].to(device)
+                # calculate outputs by running images through the network
+                outputs = simsiam(inputs)
+                # the class with the highest energy is what we choose as prediction
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        accuracy = 100 * correct // total
+        accuracies.append(accuracy)
+        print(f'Validation accuracy after epoch {epoch + 1}: {accuracy:.2f}%')
 
     plt.plot(accuracies)
     plt.ylim(0, 100)
     plt.xlabel("epoch")
     plt.ylabel("accuracy")
-    plt.savefig("simsiam_classification_accuracies.png")
+    plt.savefig(f"{opt.simsiam_path}_evaluation_{opt.data_percentage}.png")
     # evaluation
     simsiam.eval()
     
     correct = 0
     total = 0
-    # since we're not training, we don't need to calculate the gradients for our outputs
     with torch.no_grad():
         for data in testloader:
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -169,22 +183,37 @@ if __name__=="__main__":
             loss.backward()
             optimizer.step()
 
-            # print statistics
-            # running_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+        #     # print statistics
+        #     # running_loss += loss.item()
+        #     _, predicted = torch.max(outputs.data, 1)
+        #     total += labels.size(0)
+        #     correct += (predicted == labels).sum().item()
    
-        # print accuracy after every epoch
-        acc = 100 * correct / total
-        accuracies.append(acc)
-        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+        # # print accuracy after every epoch
+        # acc = 100 * correct / total
+        # accuracies.append(acc)
+        # print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
+
+        # eval
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in testloader:
+                inputs, labels = data[0].to(device), data[1].to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+        accuracy = 100 * correct // total
+        accuracies.append(accuracy)
+        print(f'Validation accuracy of the supervised network on test images: {accuracy} %')
+
 
     plt.plot(accuracies)
     plt.ylim(0, 100)
     plt.xlabel("epoch")
     plt.ylabel("accuracy")
-    plt.savefig("supervised_classification_accuracies.png")
+    plt.savefig(f"supervised_evaluation_{opt.data_percentage}.png")
 
 
     # eval
