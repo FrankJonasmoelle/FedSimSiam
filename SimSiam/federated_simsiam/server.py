@@ -32,7 +32,7 @@ class Server:
     def create_clients(self, local_trainloaders):
         clients = []
         for i, dataloader in enumerate(local_trainloaders):
-            client = Client(client_id=i, model=self.model, dataloader=dataloader, local_epochs=self.local_epochs)
+            client = Client(client_id=i, model=self.model, dataloader=dataloader, local_epochs=self.local_epochs, num_rounds=self.num_rounds)
             clients.append(client)
         return clients
 
@@ -60,8 +60,6 @@ class Server:
         # send current model
         self.send_model()
         
-        # TODO: Sample only subset of clients
-
         # update clients (train client models)
         for client in self.clients:
             client.client_update()
@@ -73,6 +71,7 @@ class Server:
     
     
     def learn_federated_simsiam(self):
+        # prepare data for knn monitoring
         knn_accuracies = [0]
         _, memoryloader, testloader = prepare_data(batch_size=self.batch_size)
 
@@ -93,6 +92,6 @@ class Server:
             plt.xlabel("round")
             plt.ylabel("accuracy")
             if self.iid:
-                plt.savefig("knn_accuracy_fedavg_iid.png")
+                plt.savefig(f"knn_accuracy_fedavg_iid.png")
             else:
                 plt.savefig("knn_accuracy_fedavg_noniid.png")
