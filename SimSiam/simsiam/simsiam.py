@@ -60,8 +60,9 @@ class PredictionMLP(nn.Module):
         return x
     
 class SimSiam(nn.Module):
-    def __init__(self, backbone=resnet18()):
+    def __init__(self):
         super(SimSiam, self).__init__()
+        backbone = resnet18()
         backbone.output_dim = backbone.fc.in_features
         backbone.fc = torch.nn.Identity()
 

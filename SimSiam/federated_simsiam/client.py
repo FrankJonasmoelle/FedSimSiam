@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 from tqdm import tqdm
+import torch.nn.functional as F 
 
 from ..simsiam.simsiam import D
 from ..optimizers import *
@@ -12,10 +13,13 @@ class Client:
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = model.to(self.device)
         self.local_epochs = local_epochs
+        self.alignmentmodel = None
+        self.alignmentset = None
 
     def client_update(self):
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model.to(device)
+        self.alignmentmodel.to(device)
         self.model.train()
         
         # optimizer = optim.SGD(self.model.parameters(), lr=0.03, momentum=0.9, weight_decay=0.0005)
@@ -53,10 +57,31 @@ class Client:
                 data_dict = self.model.forward(images[0].to(self.device, non_blocking=True), images[1].to(self.device, non_blocking=True))
                 loss = data_dict['loss'].mean()
 
-                loss.backward()
+                loss_align = 0
+                
+                for idx, data in enumerate(self.alignmentset):
+                    images = data[0]
+                    embedding_localmodel = self.model.encoder(images[0].cuda(non_blocking=True))
+                    embedding_alignmentmodel = self.alignmentmodel.encoder(images[0].cuda(non_blocking=True))
+                    # normalize embedding
+                    embedding_localmodel = F.normalize(embedding_localmodel, dim=1)
+                    embedding_alignmentmodel = F.normalize(embedding_alignmentmodel, dim=1)
+
+                    l2_norm = torch.norm(embedding_alignmentmodel - embedding_localmodel, p=2)
+                    
+                    loss_align += l2_norm
+                
+                # print('normal loss: ', loss)
+                # print('loss_align :', loss_align)
+
+                beta = 0.5
+                total_loss = loss + beta*loss_align
+                #print('total loss: ', total_loss)
+                total_loss.backward()
                 optimizer.step()
                 lr_scheduler.step()
                 
+                data_dict['loss'] = total_loss
                 local_progress.set_postfix(data_dict)
 
             #if args.train.knn_monitor and epoch % args.train.knn_interval == 0: 
