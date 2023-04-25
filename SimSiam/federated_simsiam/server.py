@@ -131,7 +131,7 @@ class Server:
 
         self.setup()
 
-        self.train_alignment_model(sample_size=3000, subset_size=50, epochs=50)
+        self.train_alignment_model(sample_size=3000, subset_size=50, epochs=20)
         self.send_alignment(alignmentset=self.sub_alignmentset, alignmentmodel=self.alignmentmodel)
         
         for i in range(self.num_rounds):

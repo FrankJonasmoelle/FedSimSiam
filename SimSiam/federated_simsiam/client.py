@@ -57,8 +57,8 @@ class Client:
                 data_dict = self.model.forward(images[0].to(self.device, non_blocking=True), images[1].to(self.device, non_blocking=True))
                 loss = data_dict['loss'].mean()
 
-                loss_align = 0
-                
+                #loss_align = 0
+                cos_similarities = []
                 for idx, data in enumerate(self.alignmentset):
                     images = data[0]
                     embedding_localmodel = self.model.encoder(images[0].cuda(non_blocking=True))
@@ -67,16 +67,21 @@ class Client:
                     embedding_localmodel = F.normalize(embedding_localmodel, dim=1)
                     embedding_alignmentmodel = F.normalize(embedding_alignmentmodel, dim=1)
 
-                    l2_norm = torch.norm(embedding_alignmentmodel - embedding_localmodel, p=2)
+                    # l2_norm = torch.norm(embedding_alignmentmodel - embedding_localmodel, p=2)
+                    #loss_align += l2_norm
                     
-                    loss_align += l2_norm
+                    # Try cosine similarity
+                    cos_similarity = - F.cosine_similarity(embedding_localmodel, embedding_alignmentmodel, dim=-1).mean()
+                    cos_similarities.append(cos_similarity)
+                cos_similarity = sum(cos_similarities) / len(cos_similarities)
                 
                 # print('normal loss: ', loss)
                 # print('loss_align :', loss_align)
 
                 beta = 0.5
-                total_loss = loss + beta*loss_align
-                #print('total loss: ', total_loss)
+                #total_loss = loss + beta*loss_align
+                total_loss = 1/2 * (loss + beta*cos_similarity)
+                # print('total loss: ', total_loss)
                 total_loss.backward()
                 optimizer.step()
                 lr_scheduler.step()

@@ -11,7 +11,7 @@ def D(p, z, version='simplified'): # negative cosine similarity
         z = F.normalize(z, dim=1) # l2-normalize 
         return -(p*z).sum(dim=1).mean()
 
-    elif version == 'simplified':# same thing, much faster. Scroll down, speed test in __main__
+    elif version == 'simplified':# same thing, much faster
         return - F.cosine_similarity(p, z.detach(), dim=-1).mean()
     else:
         raise Exception
