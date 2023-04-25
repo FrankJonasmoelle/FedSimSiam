@@ -70,13 +70,10 @@ class Client:
                 self.K = np.vstack(features_list)
 
                 if self.K_mean is None: # skip for first iteration as K_mean cannot be calculated
-                    #print("self.K_mean is none")
                     total_loss = loss
                 else:
-                    print("calculating linear CKA loss")
                     mu = 0.5
                     linear_CKA_score = linear_CKA(self.K, self.K_mean) # linear_CKA outputs score between 0 (similar) and 1 (dissimilar)
-                    print("linear CKA: ", linear_CKA_score)
 
                     total_loss = loss + mu*linear_CKA_score  
 
@@ -87,9 +84,6 @@ class Client:
                 
                 data_dict['loss'] = total_loss
                 local_progress.set_postfix(data_dict)
-
-            #if args.train.knn_monitor and epoch % args.train.knn_interval == 0: 
-            #accuracy = knn_monitor(model.encoder, memory_loader, test_loader, device, k=min(25, len(memory_loader.dataset))) 
             
             epoch_dict = {"epoch":epoch}
             global_progress.set_postfix(epoch_dict)
