@@ -2,9 +2,11 @@ import torch
 import torch.optim as optim
 from tqdm import tqdm
 import torch.nn.functional as F 
+import numpy as np
 
 from ..simsiam.simsiam import D
 from ..optimizers import *
+from .cka import linear_CKA
 
 class Client:
     def __init__(self, client_id, model, dataloader, local_epochs):
@@ -13,8 +15,9 @@ class Client:
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.model = model.to(self.device)
         self.local_epochs = local_epochs
-        self.alignmentmodel = None
         self.alignmentset = None
+        self.K = None
+        self.K_mean = None
 
     def client_update(self):
         device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -49,7 +52,7 @@ class Client:
         global_progress = tqdm(range(0, self.local_epochs), desc=f'Training client {self.client_id + 1}')
         for epoch in global_progress:
             self.model.train()
-            
+
             local_progress=tqdm(self.dataloader, desc=f'Epoch {epoch + 1}/{self.local_epochs}')
             for idx, data in enumerate(local_progress):
                 images = data[0]
@@ -57,30 +60,26 @@ class Client:
                 data_dict = self.model.forward(images[0].to(self.device, non_blocking=True), images[1].to(self.device, non_blocking=True))
                 loss = data_dict['loss'].mean()
 
-                #loss_align = 0
-                cos_similarities = []
-                for idx, data in enumerate(self.alignmentset):
-                    images = data[0]
-                    embedding_localmodel = self.model.encoder(images[0].cuda(non_blocking=True))
-                    embedding_alignmentmodel = self.alignmentmodel.encoder(images[0].cuda(non_blocking=True))
-                    # normalize embedding
-                    embedding_localmodel = F.normalize(embedding_localmodel, dim=1)
-                    embedding_alignmentmodel = F.normalize(embedding_alignmentmodel, dim=1)
+                features_list = []
+                with torch.no_grad():
+                    for idx, data in enumerate(self.alignmentset):
+                        images = data[0]
+                        embedding = self.model.encoder(images[0].cuda(non_blocking=True))
+                        features_list.append(embedding.cpu().numpy())
+                       
+                self.K = np.vstack(features_list)
 
-                    # l2_norm = torch.norm(embedding_alignmentmodel - embedding_localmodel, p=2)
-                    #loss_align += l2_norm
-                    
-                    # Try cosine similarity
-                    cos_similarity = - F.cosine_similarity(embedding_localmodel, embedding_alignmentmodel, dim=-1).mean()
-                    cos_similarities.append(cos_similarity)
-                cos_similarity = sum(cos_similarities) / len(cos_similarities)
-                
-                # print('normal loss: ', loss)
-                # print('loss_align :', loss_align)
+                if self.K_mean is None: # skip for first iteration as K_mean cannot be calculated
+                    #print("self.K_mean is none")
+                    total_loss = loss
+                else:
+                    print("calculating linear CKA loss")
+                    mu = 0.5
+                    linear_CKA_score = linear_CKA(self.K, self.K_mean) # linear_CKA outputs score between 0 (similar) and 1 (dissimilar)
+                    print("linear CKA: ", linear_CKA_score)
 
-                beta = 0.5
-                #total_loss = loss + beta*loss_align
-                total_loss = 1/2 * (loss + beta*cos_similarity)
+                    total_loss = loss + mu*linear_CKA_score  
+
                 # print('total loss: ', total_loss)
                 total_loss.backward()
                 optimizer.step()
