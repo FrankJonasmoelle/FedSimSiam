@@ -65,6 +65,7 @@ def get_downstream_data(percentage_of_data=0.1, batch_size=4):
     
     # Train only on *percentage_of_data* of training data
     subset = percentage_of_data  * len(trainset)
+    print("number of training points: ", subset)
     train_subset = torch.utils.data.Subset(trainset, [i for i in range(int(subset))])
 
     # validation set

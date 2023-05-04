@@ -92,6 +92,6 @@ class Server:
             plt.xlabel("round")
             plt.ylabel("accuracy")
             if self.iid:
-                plt.savefig(f"knn_accuracy_fedavg_iid.png")
+                plt.savefig(f"knn_accuracy_fedavg_noniid_10_30_25.png")
             else:
-                plt.savefig("knn_accuracy_fedavg_noniid.png")
+                plt.savefig(f"knn_accuracy_fedavg_noniid_10_30_25.png")

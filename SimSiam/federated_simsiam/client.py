@@ -47,8 +47,8 @@ class Client:
         
         # optimizer = optim.SGD(self.model.parameters(), lr=0.03, momentum=0.9, weight_decay=0.0005)
 
-        if self.lr_scheduler is None:
-            self.optimizer, self.lr_scheduler = self.init_lrscheduler()
+        #if self.lr_scheduler is None:
+        self.optimizer, self.lr_scheduler = self.init_lrscheduler()
 
         global_progress = tqdm(range(0, self.local_epochs), desc=f'Training client {self.client_id + 1}')
         for epoch in global_progress:

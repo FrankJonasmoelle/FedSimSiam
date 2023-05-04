@@ -11,7 +11,7 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 20 --local_epochs 5 --batch_size 64 --output_path 'fedavg_iid_5_20_10.pth'
+    python3 train_federation.py --num_clients 10 --alpha 0.5 --num_rounds 30 --local_epochs 25 --batch_size 64 --output_path 'fedavg_noniid_10_30_25.pth'
     """
     parser = argparse.ArgumentParser()  
     
@@ -24,7 +24,7 @@ if __name__=="__main__":
 
     opt = parser.parse_args()
 
-    IID = True
+    IID = False
 
     server = Server(num_clients=opt.num_clients, iid=IID, output_path=opt.output_path, num_rounds=opt.num_rounds, 
                     local_epochs=opt.local_epochs, batch_size=opt.batch_size)
