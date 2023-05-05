@@ -123,7 +123,7 @@ def load_data_non_iid(trainset, num_clients, batch_size, alpha=0.5):
     return local_dataloaders
 
 
-def alignment_dataset(batch_size, sample_size=3200, subset_size=500):
+def alignment_dataset(batch_size, sample_size=1000, subset_size=500):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                         std=[0.229, 0.224, 0.225])
 

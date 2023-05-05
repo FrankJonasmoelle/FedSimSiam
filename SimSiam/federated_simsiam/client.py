@@ -74,7 +74,6 @@ class Client:
                 else:
                     mu = 0.5
                     linear_CKA_score = linear_CKA(self.K, self.K_mean) # linear_CKA outputs score between 0 (similar) and 1 (dissimilar)
-
                     total_loss = loss + mu*linear_CKA_score  
 
                 # print('total loss: ', total_loss)
