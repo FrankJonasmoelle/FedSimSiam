@@ -17,6 +17,7 @@ class Server:
         self.iid = iid
         self.output_path = output_path 
         self.num_rounds = num_rounds # number of rounds that models should be trained on clients
+        self.curr_round = 1
         self.local_epochs = local_epochs # number of epochs each client is trained per round
         self.batch_size = batch_size
         self.alpha = alpha
@@ -117,7 +118,7 @@ class Server:
         
         # update clients (train client models)
         for client in self.clients:
-            client.client_update()
+            client.client_update(self.curr_round)
         
         # average models
         total_size = sum([len(client.dataloader.dataset[1]) for client in self.clients])
@@ -131,7 +132,7 @@ class Server:
 
         self.setup()
 
-        self.train_alignment_model(sample_size=3000, subset_size=50, epochs=50)
+        self.train_alignment_model(sample_size=5_000, subset_size=50, epochs=50)
         self.send_alignment(alignmentset=self.sub_alignmentset, alignmentmodel=self.alignmentmodel)
         
         for i in range(self.num_rounds):
@@ -150,3 +151,5 @@ class Server:
             plt.xlabel("round")
             plt.ylabel("accuracy")
             plt.savefig(f"knn_accuracy_fedavg_{self.iid}_{self.num_clients}_{self.num_rounds}_{self.local_epochs}.png")
+
+            self.curr_round += 1
