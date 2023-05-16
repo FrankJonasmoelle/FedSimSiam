@@ -11,7 +11,7 @@ import argparse
 
 if __name__=="__main__":
     """
-    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 10 --local_epochs 25 --batch_size 64 --output_path 'fedca_iid_5_20_5.pth'
+    python3 train_federation.py --num_clients 5 --alpha 0.5 --num_rounds 10 --local_epochs 25 --batch_size 64 --output_path 'hetero_ssl_iid_5_7_25.pth'
     """
     parser = argparse.ArgumentParser()  
     
