@@ -4,6 +4,7 @@ models/
 
 *.png
 
+gen_plots.ipynb
 .simsiam-venv/
 simsiam_*
 fedavg_*
