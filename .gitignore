@@ -2,7 +2,7 @@ data/
 models/
 *.idea
 .ipynb
-
+gen_plots.ipynb
 *.png
 
 .simsiam-venv/
