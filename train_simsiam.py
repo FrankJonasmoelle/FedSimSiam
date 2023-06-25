@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 if __name__=="__main__":
-    # python3 train_simsiam.py --epochs 800 --batch_size 64 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam_800.pth'
+    # python3 train_simsiam.py --epochs 750 --batch_size 64 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam_750.pth'
 
     parser = argparse.ArgumentParser()
 
