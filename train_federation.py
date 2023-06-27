@@ -28,6 +28,7 @@ if __name__=="__main__":
 
     server = Server(num_clients=opt.num_clients, iid=IID, output_path=opt.output_path, num_rounds=opt.num_rounds, 
                     local_epochs=opt.local_epochs, batch_size=opt.batch_size)
+    
     # trains the federated model
     server.learn_federated_simsiam()
     # save model

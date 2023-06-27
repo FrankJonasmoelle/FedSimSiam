@@ -4,7 +4,6 @@ import torch
 from SimSiam.simsiam.datapreparation import *
 from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
-# from SimSiam.simsiam.evaluation import *
 
 from SimSiam.federated_simsiam.client import *
 from SimSiam.federated_simsiam.server import *
@@ -61,7 +60,6 @@ class SupervisedModel(nn.Module):
 if __name__=="__main__":
     """ 
     python3 evaluation_comparison.py --data_percentage 0.1 --epochs 30 --lr 0.1 --batch_size 32 --simsiam_path 'fedavg_iid_5_7_100.pth'
-
     """
     parser = argparse.ArgumentParser()
 
@@ -115,29 +113,11 @@ if __name__=="__main__":
             correct += (predicted == labels).sum().item()
    
         # print accuracy after every epoch
-        # acc = 100 * correct / total
-        # accuracies.append(acc)
-        # print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for data in valloader:
-                inputs, labels = data[0].to(device), data[1].to(device)
-                # calculate outputs by running images through the network
-                outputs = simsiam(inputs)
-                # the class with the highest energy is what we choose as prediction
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-        accuracy = 100 * correct // total
-        accuracies.append(accuracy)
-        print(f'Validation accuracy after epoch {epoch + 1}: {accuracy:.2f}%')
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
 
-    plt.plot(accuracies)
-    plt.ylim(0, 100)
-    plt.xlabel("epoch")
-    plt.ylabel("accuracy")
-    plt.savefig(f"{opt.simsiam_path}_evaluation_{opt.data_percentage}.png")
+
     # evaluation
     simsiam.eval()
     
@@ -154,7 +134,6 @@ if __name__=="__main__":
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct // total
     print(f'Accuracy of SimSiam on test images: {accuracy} %')
-
 
 
     # Supervised model
@@ -183,37 +162,10 @@ if __name__=="__main__":
             loss.backward()
             optimizer.step()
 
-        #     # print statistics
-        #     # running_loss += loss.item()
-        #     _, predicted = torch.max(outputs.data, 1)
-        #     total += labels.size(0)
-        #     correct += (predicted == labels).sum().item()
-   
-        # # print accuracy after every epoch
-        # acc = 100 * correct / total
-        # accuracies.append(acc)
-        # print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
-
-        # eval
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for data in testloader:
-                inputs, labels = data[0].to(device), data[1].to(device)
-                outputs = model(inputs)
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-        accuracy = 100 * correct // total
-        accuracies.append(accuracy)
-        print(f'Validation accuracy of the supervised network on test images: {accuracy} %')
-
-
-    plt.plot(accuracies)
-    plt.ylim(0, 100)
-    plt.xlabel("epoch")
-    plt.ylabel("accuracy")
-    plt.savefig(f"supervised_evaluation_{opt.data_percentage}.png")
+        # print accuracy after every epoch
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
 
 
     # eval
