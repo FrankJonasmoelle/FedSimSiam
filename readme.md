@@ -31,12 +31,12 @@ To evaluate the trained model 'path_to_model.pth' on CIFAR-10, run
 ```
 
 
-### To run the project in Docker, use the following commands
+### To run a file using the GPU in Docker, change the Dockerfile to run the script of interest and use the following commands
 ```
-    docker build -t federated_simsiam .
+    docker build -t fedsimsiam .
 ```
 then
 ```
-    docker run --shm-size 8G --gpus all federated_simsiam
+    docker run --shm-size 8G --gpus all fedsimsiam
 ```
 
