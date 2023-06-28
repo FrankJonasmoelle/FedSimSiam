@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 
 
 if __name__=="__main__":
-    # python3 train_simsiam.py --epochs 750 --batch_size 64 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam_750.pth'
+    """
+    python3 train_simsiam.py --epochs 750 --batch_size 64 --lr 0.03 --momentum 0.9 --weight_decay 0.0005 --output_path 'simsiam_750.pth'
+    """
 
     parser = argparse.ArgumentParser()
 
@@ -28,8 +30,6 @@ if __name__=="__main__":
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model = SimSiam().to(device)
-
-    #optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=opt.momentum, weight_decay=opt.weight_decay)
     
     # fixed parameters
     warmup_epochs = 10

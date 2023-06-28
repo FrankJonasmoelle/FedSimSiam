@@ -10,7 +10,6 @@ import argparse
 if __name__=="__main__":
     """
     python3 train_supervised.py --epochs 75 --batch_size 64 --lr 0.03 --momentum 0.9 --output_path 'cifar10_supervised.pth'
-    
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs', type=int, default=1, help='number of epochs')

@@ -4,7 +4,6 @@ import torch
 from SimSiam.simsiam.datapreparation import *
 from SimSiam.simsiam.simsiam import *
 from SimSiam.simsiam.utils import *
-# from SimSiam.simsiam.evaluation import *
 
 from SimSiam.federated_simsiam.client import *
 from SimSiam.federated_simsiam.server import *
@@ -83,91 +82,120 @@ if __name__=="__main__":
 
     # split train
 
-    # # SimSiam
-    # simsiam = LinearEvaluationSimSiam(opt.simsiam_path, device)
+    # SimSiam
+    simsiam = LinearEvaluationSimSiam(opt.simsiam_path, device)
 
-    # criterion = nn.CrossEntropyLoss()
-    # # optimizer = torch.optim.SGD(simsiam.classifier.parameters(), lr=lr, momentum=momentum)
-    # optimizer = torch.optim.Adam(simsiam.classifier.parameters(), lr=lr)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(simsiam.classifier.parameters(), lr=lr)
 
-
-    # simsiam.encoder.eval()   # this is linear evaluation
-    # simsiam.classifier.train()
-    # # simsiam.train() # this is finetuning
+    simsiam.encoder.eval()   # this is linear evaluation
+    simsiam.classifier.train()
+    # simsiam.train() # this is finetuning
     
-    # accuracies = []
-    # global_progress = tqdm(range(0, opt.epochs), desc=f'Training SimSiam')
-    # for epoch in global_progress:  # loop over the dataset multiple times
-    #     correct = 0
-    #     total = 0
-    #     running_loss = 0.0
-    #     for i, data in enumerate(trainloader):
-    #         inputs, labels = data[0].to(device), data[1].to(device)
-    #         optimizer.zero_grad()
+    accuracies = []
+    global_progress = tqdm(range(0, opt.epochs), desc=f'Training SimSiam')
+    for epoch in global_progress:  # loop over the dataset multiple times
+        correct = 0
+        total = 0
+        running_loss = 0.0
+        for i, data in enumerate(trainloader):
+            inputs, labels = data[0].to(device), data[1].to(device)
+            optimizer.zero_grad()
 
-    #         outputs = simsiam(inputs)
-    #         loss = criterion(outputs, labels)
-    #         loss.backward()
-    #         optimizer.step()
+            outputs = simsiam(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-    #         # print statistics
-    #         running_loss += loss.item()
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         total += labels.size(0)
-    #         correct += (predicted == labels).sum().item()
+            # print statistics
+            running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
    
-    #     # print accuracy after every epoch
-    #     acc = 100 * correct / total
-    #     accuracies.append(acc)
-    #     print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
-    #     # correct = 0
-    #     # total = 0
-    #     # with torch.no_grad():
-    #     #     for data in valloader:
-    #     #         inputs, labels = data[0].to(device), data[1].to(device)
-    #     #         # calculate outputs by running images through the network
-    #     #         outputs = simsiam(inputs)
-    #     #         # the class with the highest energy is what we choose as prediction
-    #     #         _, predicted = torch.max(outputs.data, 1)
-    #     #         total += labels.size(0)
-    #     #         correct += (predicted == labels).sum().item()
-    #     # accuracy = 100 * correct // total
-    #     # accuracies.append(accuracy)
-    #     # print(f'Validation accuracy after epoch {epoch + 1}: {accuracy:.2f}%')
-
-    # plt.plot(accuracies)
-    # plt.ylim(0, 100)
-    # plt.xlabel("epoch")
-    # plt.ylabel("accuracy")
-    # plt.savefig(f"{opt.simsiam_path}_evaluation_{opt.data_percentage}.png")
-    # # evaluation
-    # simsiam.eval()
+        # print accuracy after every epoch
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.2f}%')
     
-    # correct = 0
-    # total = 0
-    # with torch.no_grad():
-    #     for data in testloader:
-    #         inputs, labels = data[0].to(device), data[1].to(device)
-    #         # calculate outputs by running images through the network
-    #         outputs = simsiam(inputs)
-    #         # the class with the highest energy is what we choose as prediction
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         total += labels.size(0)
-    #         correct += (predicted == labels).sum().item()
-    # accuracy = 100 * correct // total
-    # print(f'Accuracy of SimSiam on test images: {accuracy} %')
 
-
+    # evaluation
+    simsiam.eval()
+    
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            inputs, labels = data[0].to(device), data[1].to(device)
+            # calculate outputs by running images through the network
+            outputs = simsiam(inputs)
+            # the class with the highest energy is what we choose as prediction
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    accuracy = 100 * correct // total
+    print(f'Accuracy of SimSiam on test images: {accuracy} %')
 
 
     # Supervised model pre-trained on CIFAR-10
-
+    
     model = resnet18()
     # Replace the last layer with a linear layer for CIFAR-10
     model.fc = nn.Linear(model.fc.in_features, 10)
     model.load_state_dict(torch.load(opt.simsiam_path, map_location=device))
     model.fc = nn.Linear(model.fc.in_features, 10)
 
+    model = model.to(device)
+
+    # Train the linear layer (only input model.fc parameters into optimizer)
+    criterion = nn.CrossEntropyLoss()
+    # optimizer = optim.SGD(model.fc.parameters(), lr=lr, momentum=momentum)
+    optimizer = torch.optim.Adam(model.fc.parameters(), lr=lr)
+    
+    global_progress = tqdm(range(0, opt.epochs), desc=f'Training Supervised Model')
+    accuracies = []
+    for epoch in global_progress:  # loop over the dataset multiple times
+        correct = 0
+        total = 0
+        running_loss = 0.0
+        for i, data in enumerate(trainloader, 0):
+            inputs, labels = data[0].to(device), data[1].to(device)
+            # zero the parameter gradients
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+   
+        # print accuracy after every epoch
+        acc = 100 * correct / total
+        accuracies.append(acc)
+        print(f'Accuracy after epoch {epoch + 1}: {acc:.3f}%')
+
+    # eval
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            inputs, labels = data[0].to(device), data[1].to(device)
+            outputs = model(inputs)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    accuracy = 100 * correct // total
+    accuracies.append(accuracy)
+    print(f'Validation accuracy of the supervised network on test images: {accuracy} %')
+
+    # Supervised model
+    model = resnet18(pretrained=True) # NOTE TRUE OR FALSE
+    # Replace the last layer with a linear layer for CIFAR-10
+    model.fc = nn.Linear(model.fc.in_features, 10)
     model = model.to(device)
 
     # Train the linear layer (only input model.fc parameters into optimizer)
@@ -201,7 +229,9 @@ if __name__=="__main__":
         accuracies.append(acc)
         print(f'Accuracy after epoch {epoch + 1}: {acc:.3f}%')
 
-    # eval
+
+    # Evaluation
+    model.eval()
     correct = 0
     total = 0
     with torch.no_grad():
@@ -212,81 +242,7 @@ if __name__=="__main__":
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = 100 * correct // total
-    accuracies.append(accuracy)
-    print(f'Validation accuracy of the supervised network on test images: {accuracy} %')
-
-    # # Supervised model
-    # model = resnet18(pretrained=True) # NOTE TRUE OR FALSE
-    # # Replace the last layer with a linear layer for CIFAR-10
-    # model.fc = nn.Linear(model.fc.in_features, 10)
-    # model = model.to(device)
-
-    # # Train the linear layer (only input model.fc parameters into optimizer)
-    # criterion = nn.CrossEntropyLoss()
-    # # optimizer = optim.SGD(model.fc.parameters(), lr=lr, momentum=momentum)
-    # optimizer = torch.optim.Adam(model.fc.parameters(), lr=lr)
-    
-    # global_progress = tqdm(range(0, opt.epochs), desc=f'Training Supervised Model')
-    # accuracies = []
-    # for epoch in global_progress:  # loop over the dataset multiple times
-    #     correct = 0
-    #     total = 0
-    #     running_loss = 0.0
-    #     for i, data in enumerate(trainloader, 0):
-    #         inputs, labels = data[0].to(device), data[1].to(device)
-    #         # zero the parameter gradients
-    #         optimizer.zero_grad()
-    #         outputs = model(inputs)
-    #         loss = criterion(outputs, labels)
-    #         loss.backward()
-    #         optimizer.step()
-
-    #         # print statistics
-    #         # running_loss += loss.item()
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         total += labels.size(0)
-    #         correct += (predicted == labels).sum().item()
-   
-    #     # print accuracy after every epoch
-    #     acc = 100 * correct / total
-    #     accuracies.append(acc)
-    #     print(f'Accuracy after epoch {epoch + 1}: {acc:.3f}%')
-
-    #     # # eval
-    #     # correct = 0
-    #     # total = 0
-    #     # with torch.no_grad():
-    #     #     for data in testloader:
-    #     #         inputs, labels = data[0].to(device), data[1].to(device)
-    #     #         outputs = model(inputs)
-    #     #         _, predicted = torch.max(outputs.data, 1)
-    #     #         total += labels.size(0)
-    #     #         correct += (predicted == labels).sum().item()
-    #     # accuracy = 100 * correct // total
-    #     # accuracies.append(accuracy)
-    #     # print(f'Validation accuracy of the supervised network on test images: {accuracy} %')
-
-
-    # plt.plot(accuracies)
-    # plt.ylim(0, 100)
-    # plt.xlabel("epoch")
-    # plt.ylabel("accuracy")
-    # plt.savefig(f"supervised_evaluation_{opt.data_percentage}.png")
-
-
-    # # eval
-    # model.eval()
-    # correct = 0
-    # total = 0
-    # with torch.no_grad():
-    #     for data in testloader:
-    #         inputs, labels = data[0].to(device), data[1].to(device)
-    #         outputs = model(inputs)
-    #         _, predicted = torch.max(outputs.data, 1)
-    #         total += labels.size(0)
-    #         correct += (predicted == labels).sum().item()
-    # accuracy = 100 * correct // total
-    # print(f'Accuracy of the supervised network on test images: {accuracy:.2f} %')
+    print(f'Accuracy of the supervised network on test images: {accuracy:.2f} %')
 
 
 
